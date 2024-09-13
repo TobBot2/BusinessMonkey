@@ -16,10 +16,32 @@ This game is a first-person shooter with arcade-like elements such as powerups/p
 
 Primary sources of inspiration were Doom and Superhot. The fast-paced first-person shooting of Doom is the perfect mood for this maniacal shooter. Additionally, its arcadey aspects with item pickups and short, linear, wave-based levels. Superhot has a nice low-poly art style which is a solid art style that is relatively quick to prototype games with.
 
+![Doom Image](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimages.pushsquare.com%2Fscreenshots%2F103600%2Flarge.jpg&f=1&nofb=1&ipt=48558be15b865f387e14a68127de6a1579900413b41cbcfef43a896ebf8de1eb&ipo=images)
+
+![Superhot image](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.cgmagonline.com%2Fwp-content%2Fuploads%2F2017%2F07%2Fsuperhot-ps4-review-super-cool-9.jpg&f=1&nofb=1&ipt=52abd44752b9b5562a277215f79e570d3a5968e052ac973daf33660b391f58f2&ipo=images)
+
+Additionally, we like the parkour/movement of Neon White, Titanfall 2, and Mirror's Edge. We are especially excited to add the wall running, double jumping, and environmental boosts (i.e. bounce pads) to our game if we have time.
+
+![Titanfall 2 Image](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fstatic0.gamerantimages.com%2Fwordpress%2Fwp-content%2Fuploads%2Ftitanfall-pilot-wall-running.jpg&f=1&nofb=1&ipt=d6687f8505034fd2638038fada51e0d938a14e548dbf445e433f6840208bd2f1&ipo=images)
+
 <https://en.wikipedia.org/wiki/Doom_Eternal>
 
 <https://en.wikipedia.org/wiki/Superhot>
 
+<https://en.wikipedia.org/wiki/Neon_White>
+
+<https://en.wikipedia.org/wiki/Titanfall_2>
+
+<https://en.wikipedia.org/wiki/Mirror%27s_Edge>
+
 ### Gameplay
 
 The player is first-person controlled. The movement is fast-paced and fluid, where the player can run around and jump quickly while maintaining shooting accuracy. The maps will support the player's fast movement to encourage jumping between platforms and buildings while avoiding enemies in the dense environment of Hong Kong. Most enemies will be easy to kill, with the difficulty coming in quantity earlier in a level. However, as players progress, they will encounter more challenging foes and final bosses with custom attacks and levels that require strategic thinking and enhanced skills to beat. The HUD should be simple, taking up minimal space and only showing the necessary information, drawing inspiration from Doom, where controls would follow most PC FPS's and utilize WASD for movement and mouse for aiming and shooting.
+
+Some ideas we would like to implement if we have time are...
+
+- Multi-layered levels. i.e. in the streets of hong kong, you can run along the streets, above the awnings.
+- Helicopter enemy. You just gotta dodge the bullets when the helicopter comes into the level, then maybe it goes away on its own pretty quick.
+- Monkeys jumping out of the windows of the skyscrapers in the level, ambushing the player. Maybe as an intro sequence.
+
+![Hong Kong multi-layered streets](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwallpaperaccess.com%2Ffull%2F1922270.jpg&f=1&nofb=1&ipt=b4c3e5ad7778b1a9cba2b6a15b5266bb2b26feed20a21df00a1a68fa081b9d42&ipo=images)
