@@ -10,7 +10,7 @@ Fight your way through unique levels by shooting down waves of enemies and advan
 
 ### Genre
 
-This game is a first-person shooter with arcade-like elements such as powerups/pickups, short levels, and a scoring system. Power-ups provide temporary advantages (likely stat buffs like increased damage or speed), while pickups provide new weapons (from pistols to machine guns to banana rocket launchers). Levels are designed to permit some level of exploration between fights but also promote short and intense encounters with large waves of enemies. The scoring system would reward skill, with higher scores for faster times or more difficult shots, encouraging players to play repeatedly and achieve higher scores.
+This game is a first-person shooter with arcade-like elements such as powerups/pickups, short levels, and a scoring system. Power-ups provide temporary advantages (likely stat buffs like increased damage or speed), while pickups provide new weapons (from pistols to machine guns to banana rocket launchers). Levels are designed to permit some level of exploration between fights but also promote short and intense encounters with large waves of enemies. The scoring system would reward skill, with higher scores for faster times or more difficult shots, encouraging players to play repeatedly and achieve higher scores. This will also let them experiment with parkour, to more efficiently traverse the map upon different attempts.
 
 ### Inspiration
 
@@ -45,3 +45,10 @@ Some ideas we would like to implement if we have time are...
 - Monkeys jumping out of the windows of the skyscrapers in the level, ambushing the player. Maybe as an intro sequence.
 
 ![Hong Kong multi-layered streets](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwallpaperaccess.com%2Ffull%2F1922270.jpg&f=1&nofb=1&ipt=b4c3e5ad7778b1a9cba2b6a15b5266bb2b26feed20a21df00a1a68fa081b9d42&ipo=images)
+
+### Final Results/Process
+
+For the demo, we may keep the level as a rough block-out to focus on the gameplay mechanics. Additionally, enemy AI will be kept simple as it often becomes a large task that distracts from the player's mechanics (i.e. movement, shooting, etc.), which is more necessary for a fun game- especially a demo. This Ai may simply include stationary AI that shoots at the player, and/or basic walking towards the player.
+
+## Development
+

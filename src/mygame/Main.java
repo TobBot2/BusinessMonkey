@@ -5,8 +5,8 @@ import com.jme3.renderer.RenderManager;
 import com.jme3.system.AppSettings;
 
 /**
- * This is the Main Class of your Game. You should only do initialization here.
- * Move your Logic into AppStates or Controls
+ * Main class of Business Monkey game
+ * 
  * @author Trevor Black & Liam Finn
  */
 public class Main extends SimpleApplication {
@@ -14,6 +14,7 @@ public class Main extends SimpleApplication {
     public static void main(String[] args) {
         Main app = new Main();
         
+        // set app settings
         AppSettings settings = new AppSettings(true);
         settings.setTitle("Business Monkey.");
         settings.setResolution(1600,1000);
@@ -28,9 +29,11 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+        // remove debug key mappings
         inputManager.deleteMapping(INPUT_MAPPING_CAMERA_POS); // Key_C
         inputManager.deleteMapping(INPUT_MAPPING_MEMORY); // Key_M
         
+        // initialize main app state
         GameRunningAppState gameRunningAppState = new GameRunningAppState();
         stateManager.attach(gameRunningAppState);
     }

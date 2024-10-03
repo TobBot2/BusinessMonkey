@@ -25,20 +25,25 @@ import com.jme3.scene.shape.Cylinder;
 
 /**
  *
+ * AppState in charge of running the demo level
+ * 
  * @author Trevor Black & Liam Finn
  */
 public class GameRunningAppState extends AbstractAppState {
+    // input/key mappings
     private final static Trigger TRIGGER_SHOOT = new MouseButtonTrigger(MouseInput.BUTTON_LEFT);
     private final static Trigger TRIGGER_PICKUP = new KeyTrigger(KeyInput.KEY_SPACE);
 
     private final static String MAPPING_SHOOT = "Shoot";
     private final static String MAPPING_PICKUP = "Pickup";
     
+    // application variables
     private SimpleApplication app;
     private Camera cam;
     private Node rootNode;
     private AssetManager assetManager;
     
+    // reused variables
     private Ray ray = new Ray();
     private static final Box boxMesh = new Box(Vector3f.ZERO, 1, 1, 1);
     private static final Cylinder cylinderMesh = new Cylinder(10, 10, 1, 1, true);
@@ -46,10 +51,9 @@ public class GameRunningAppState extends AbstractAppState {
     private int coinsCollected = 0;
     
     @Override
-    public void update(float tpf) {
-        
-    }
+    public void update(float tpf) { }
     
+    // attempt to shoot a car located at the center of the screen, damaging it.
     private void shoot() {
         CollisionResults results = new CollisionResults();
         
@@ -70,6 +74,7 @@ public class GameRunningAppState extends AbstractAppState {
         }
     }
     
+    // attempt to pick up a coin located at the center of the screen, and add its value to the player's coinsCollected
     private void pickup() {
         CollisionResults results = new CollisionResults();
         
@@ -183,7 +188,8 @@ public class GameRunningAppState extends AbstractAppState {
         return geom;
     }
     
-    // helper function to quickly create a car. The scale determines the size of the main body of the car
+    // helper function to quickly create a car (similar to createBox, setting name, location, scale, color, with addition of rotation).
+    // The scale determines the size of the main body of the car
     private Node createCar(String name, Vector3f loc, Vector3f scale, float rot, ColorRGBA color) {
         Node car = new Node(name); 
         
@@ -213,6 +219,7 @@ public class GameRunningAppState extends AbstractAppState {
         return car;
     }
     
+    // creates pickup-able coin at a given location with the given name
     private Geometry createCoin(String name, Vector3f loc) {
         Geometry coin = new Geometry(name, cylinderMesh);
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -220,7 +227,6 @@ public class GameRunningAppState extends AbstractAppState {
         coin.setMaterial(mat);
         coin.setLocalTranslation(loc);
         coin.setLocalScale(1, 1, .1f);
-//        coin.rotate((float)Math.PI / 2f, 0, 0);
         
         coin.addControl(new CoinPickupControl());
         
