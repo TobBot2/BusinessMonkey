@@ -20,12 +20,12 @@ public class ExplodeCarControl extends AbstractControl {
     float rotateOnHitAmount = .2f;
     
     public void damage(float amount) {
-        health -= amount;
+        health -= amount;        
         
-        System.out.println("Hit! " + health);
-        
+        // rotate randomly on hit
         spatial.rotate(randomAngle(rotateOnHitAmount),randomAngle(rotateOnHitAmount),randomAngle(rotateOnHitAmount));
         
+        // after being hit too many times, destroy self
         if (health <= 0) {
             spatial.removeFromParent();
         }

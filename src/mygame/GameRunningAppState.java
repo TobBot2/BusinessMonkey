@@ -8,6 +8,7 @@ import com.jme3.asset.AssetManager;
 import com.jme3.collision.CollisionResults;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
+import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
@@ -20,6 +21,7 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Cylinder;
 
 /**
  *
@@ -27,8 +29,10 @@ import com.jme3.scene.shape.Box;
  */
 public class GameRunningAppState extends AbstractAppState {
     private final static Trigger TRIGGER_SHOOT = new MouseButtonTrigger(MouseInput.BUTTON_LEFT);
-    private final static String MAPPING_SHOOT = "Shoot";
+    private final static Trigger TRIGGER_PICKUP = new KeyTrigger(KeyInput.KEY_SPACE);
 
+    private final static String MAPPING_SHOOT = "Shoot";
+    private final static String MAPPING_PICKUP = "Pickup";
     
     private SimpleApplication app;
     private Camera cam;
@@ -36,7 +40,10 @@ public class GameRunningAppState extends AbstractAppState {
     private AssetManager assetManager;
     
     private Ray ray = new Ray();
-    private static final Box mesh = new Box(Vector3f.ZERO, 1, 1, 1);
+    private static final Box boxMesh = new Box(Vector3f.ZERO, 1, 1, 1);
+    private static final Cylinder cylinderMesh = new Cylinder(10, 10, 1, 1, true);
+    
+    private int coinsCollected = 0;
     
     @Override
     public void update(float tpf) {
@@ -45,17 +52,41 @@ public class GameRunningAppState extends AbstractAppState {
     
     private void shoot() {
         CollisionResults results = new CollisionResults();
+        
+        // set ray to center of first person perspective and shoot ray
         ray.setOrigin(cam.getLocation());
         ray.setDirection(cam.getDirection());
         rootNode.collideWith(ray, results);
+        
         if (results.size() > 0) {
-            System.out.println("Hit!");
+            // if hit...
+            // get parent because the geometry is a child of the car node that has the ExplodeCarControl class
             Node target = results.getClosestCollision().getGeometry().getParent();
             ExplodeCarControl explodeCarControl = target.getControl(ExplodeCarControl.class); 
             if (explodeCarControl != null) {
+                // if hit a car which can explode...
                 explodeCarControl.damage(1f);
-            } else {
-                System.out.println("Not car...");
+            }
+        }
+    }
+    
+    private void pickup() {
+        CollisionResults results = new CollisionResults();
+        
+        // set ray to center of first person perspective and shoot ray
+        ray.setOrigin(cam.getLocation());
+        ray.setDirection(cam.getDirection());
+        rootNode.collideWith(ray, results);
+        
+        if (results.size() > 0) {
+            // if hit...
+            Geometry target = results.getClosestCollision().getGeometry();
+            CoinPickupControl coinPickupControl = target.getControl(CoinPickupControl.class); 
+            if (coinPickupControl != null) {
+                // if hit a coin which can be picked up...
+                coinsCollected += coinPickupControl.pickup();
+                
+                System.out.println("Picked up coin! " + coinsCollected);
             }
         }
     }
@@ -66,6 +97,7 @@ public class GameRunningAppState extends AbstractAppState {
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
         
+        // app settings/variables
         this.app = (SimpleApplication) app;
         this.cam = this.app.getCamera();
         this.rootNode = this.app.getRootNode();
@@ -73,8 +105,11 @@ public class GameRunningAppState extends AbstractAppState {
         
         this.app.getFlyByCamera().setMoveSpeed(50f);
         
+        // key mappings
         this.app.getInputManager().addMapping(MAPPING_SHOOT, TRIGGER_SHOOT);
+        this.app.getInputManager().addMapping(MAPPING_PICKUP, TRIGGER_PICKUP);
         this.app.getInputManager().addListener(analogListener, new String[]{MAPPING_SHOOT});
+        this.app.getInputManager().addListener(actionListener, new String[]{MAPPING_PICKUP});
         
         initGeometry();
     }
@@ -83,6 +118,14 @@ public class GameRunningAppState extends AbstractAppState {
         public void onAnalog(String name, float intensity, float tpf) {
             if (name.equals(MAPPING_SHOOT)) {
                 shoot();
+            }
+        }
+    };
+    
+    private ActionListener actionListener = new ActionListener() {
+        public void onAction(String name, boolean isPressed, float tpf) {
+            if (name.equals(MAPPING_PICKUP) && !isPressed) {
+                pickup();
             }
         }
     };
@@ -114,14 +157,24 @@ public class GameRunningAppState extends AbstractAppState {
         cars.attachChild(createCar("car6", new Vector3f(38, 3.5f, 30), new Vector3f(3, 3, 6), (float)Math.PI, ColorRGBA.Blue));
         cars.attachChild(createCar("car7", new Vector3f(38, 3.5f, 65), new Vector3f(3, 3, 6), (float)Math.PI, ColorRGBA.Blue));
         
+        Node coins = new Node("Coins");
+        coins.attachChild(createCoin("coin1", new Vector3f(-5, 3.5f, 0)));
+        coins.attachChild(createCoin("coin2", new Vector3f(-5, 3.5f, -37)));
+        coins.attachChild(createCoin("coin3", new Vector3f(-5, 3.5f, -74)));
+        coins.attachChild(createCoin("coin4", new Vector3f(-5, 3.5f, 116)));
+        coins.attachChild(createCoin("coin5", new Vector3f(38, 3.5f, -63)));
+        coins.attachChild(createCoin("coin6", new Vector3f(38, 3.5f, 30)));
+        coins.attachChild(createCoin("coin7", new Vector3f(38, 3.5f, 65)));
+        
         rootNode.attachChild(ground);
         rootNode.attachChild(buildings);
         rootNode.attachChild(cars);
+        rootNode.attachChild(coins);
     }
     
     // helper function to quickly create a box geometry with a given name, location, scale, and color
     private Geometry createBox(String name, Vector3f loc, Vector3f scale, ColorRGBA color) {
-        Geometry geom = new Geometry(name, mesh);
+        Geometry geom = new Geometry(name, boxMesh);
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", color);
         geom.setMaterial(mat);
@@ -137,23 +190,40 @@ public class GameRunningAppState extends AbstractAppState {
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", color);
         
-        Geometry body = new Geometry(name + "_body", mesh);
+        Geometry body = new Geometry(name + "_body", boxMesh);
         body.setMaterial(mat);
         body.setLocalScale(scale);
         
-        Geometry front = new Geometry(name + "_front", mesh);
+        Geometry front = new Geometry(name + "_front", boxMesh);
         front.setMaterial(mat);
         front.setLocalTranslation(0, -scale.y / 2.f, scale.z * 1.33f);
         front.setLocalScale(scale.mult(1, .5f, .33f));
                 
+        // create body and front of car as separate objects, children to the parent car node
         car.attachChild(body);
         car.attachChild(front);
         
+        // move the car node and rotate it
         car.setLocalTranslation(loc);
         car.rotate(0, rot, 0);
         
+        // add explode controller
         car.addControl(new ExplodeCarControl());
         
         return car;
+    }
+    
+    private Geometry createCoin(String name, Vector3f loc) {
+        Geometry coin = new Geometry(name, cylinderMesh);
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", ColorRGBA.Yellow);
+        coin.setMaterial(mat);
+        coin.setLocalTranslation(loc);
+        coin.setLocalScale(1, 1, .1f);
+//        coin.rotate((float)Math.PI / 2f, 0, 0);
+        
+        coin.addControl(new CoinPickupControl());
+        
+        return coin;
     }
 }
