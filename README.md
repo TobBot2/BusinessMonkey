@@ -59,3 +59,7 @@ We have coded a basic block-up of a small city level containing buildings, a str
 For interactions, the player can left click to shoot from the center of their screen. If shooting at a vehicle, the vehicle will react by taking damage (subtracting a value from it's individually stored health value) and rotating randomly a little to sell the impact (though no physics was implemented yet). Once the vehicle takes enough damage, it gets destroyed, revealing the coin within it.
 
 The coins can be collected by pressing the spacebar while looking at it. It adds it's worth to the player's coinsCollected variable and outputs to the console the amount collected so far. In doing so, it also gets destroyed.
+
+### Second Deliverable
+
+Trevor is the GOAT.
