@@ -116,6 +116,11 @@ public class GameRunningAppState extends AbstractAppState {
         this.app.getInputManager().addListener(analogListener, new String[]{MAPPING_SHOOT});
         this.app.getInputManager().addListener(actionListener, new String[]{MAPPING_PICKUP});
         
+        // crosshair
+        Geometry c = createBox("crosshair", Vector3f.ZERO, new Vector3f(2, 2, 2), ColorRGBA.White);
+        c.setLocalTranslation(this.app.getContext().getSettings().getWidth() / 2, this.app.getContext().getSettings().getHeight() / 2, 0);
+        this.app.getGuiNode().attachChild(c); // attach to 2D user interface
+        
         initGeometry();
     }
     
