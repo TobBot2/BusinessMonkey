@@ -1,7 +1,11 @@
 package mygame;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.light.DirectionalLight;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
+import com.jme3.scene.Spatial;
 import com.jme3.system.AppSettings;
 
 /**
@@ -10,6 +14,8 @@ import com.jme3.system.AppSettings;
  * @author Trevor Black & Liam Finn
  */
 public class Main extends SimpleApplication {
+    
+    private AnimateTriad animateModel;
 
     public static void main(String[] args) {
         Main app = new Main();
@@ -33,9 +39,53 @@ public class Main extends SimpleApplication {
         inputManager.deleteMapping(INPUT_MAPPING_CAMERA_POS); // Key_C
         inputManager.deleteMapping(INPUT_MAPPING_MEMORY); // Key_M
         
+       
+        
         // initialize main app state
         GameRunningAppState gameRunningAppState = new GameRunningAppState();
         stateManager.attach(gameRunningAppState);
+        
+        
+        
+        createAndAnimateModels();
+        DirectionalLight sun = new DirectionalLight();
+            sun.setDirection((new Vector3f(-0.5f, -0.5f, -0.5f)));
+            sun.setColor(ColorRGBA.White);
+            rootNode.addLight(sun);
+        
+        
+        
+    }
+    
+    private void createAndAnimateModels() {
+        loadMoneyTriad();
+        
+    }
+    
+    private void loadMoneyTriad() {
+        //Monkey Enemies
+        for (int i = 0; i < 3; i++) {
+            
+            LoadModel loadModel = new LoadModel(assetManager);
+            Spatial mymodel = loadModel.load(
+                "Textures/MonkeyEnemy/Jaime.j3o");
+            animateModel = new AnimateTriad(assetManager);
+            animateModel.createInstance(mymodel);
+
+            
+            
+            mymodel.setLocalTranslation(i, 0, 0); // Spread out models on the X-axis
+            mymodel.setLocalScale(0.5f);
+           
+            
+            rootNode.attachChild(mymodel);
+
+            animateModel.playAnimationAll("Walk", 1.0f);
+
+        }
+        
+        
+        
     }
 
     @Override
@@ -43,4 +93,8 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleRender(RenderManager rm) { }
+
+    
+
+    
 }
