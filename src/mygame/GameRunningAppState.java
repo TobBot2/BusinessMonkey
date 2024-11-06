@@ -20,6 +20,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
 
@@ -49,6 +50,8 @@ public class GameRunningAppState extends AbstractAppState {
     private static final Cylinder cylinderMesh = new Cylinder(10, 10, 1, 1, true);
     
     private int coinsCollected = 0;
+    
+    private AnimateModel animateModel;
     
     @Override
     public void update(float tpf) { }
@@ -148,24 +151,46 @@ public class GameRunningAppState extends AbstractAppState {
         ground.attachChild(createBox("sidewalk2", new Vector3f(128, -1, -19), new Vector3f(80, .5f, 185), ColorRGBA.Gray));
         
         Node buildings = new Node("Buildings");
-        buildings.attachChild(createBox("building1", new Vector3f(-74, 36, 75), new Vector3f(23, 36, 23), ColorRGBA.Brown));
-        buildings.attachChild(createBox("building2", new Vector3f(-70, 48, 26), new Vector3f(26, 48, 26), ColorRGBA.Brown));
-        buildings.attachChild(createBox("building3", new Vector3f(-98, 34, -13), new Vector3f(51, 34, 13), ColorRGBA.Brown));
-        buildings.attachChild(createBox("building4", new Vector3f(-77, 81, -101), new Vector3f(42, 81, 42), ColorRGBA.LightGray));
-        buildings.attachChild(createBox("building5", new Vector3f(-92, 23, -146), new Vector3f(20, 23, 20), ColorRGBA.Brown));
-        buildings.attachChild(createBox("building6", new Vector3f(95, 64, -94), new Vector3f(25, 64, 31), ColorRGBA.Brown));
-        buildings.attachChild(createBox("building7", new Vector3f(123, 115, -6), new Vector3f(43, 115, 57), ColorRGBA.LightGray));
-        buildings.attachChild(createBox("building8", new Vector3f(134, 34, 64), new Vector3f(51, 34, 13), ColorRGBA.Brown));
-        buildings.attachChild(createBox("building9", new Vector3f(113, 36, 100), new Vector3f(23, 36, 23), ColorRGBA.Brown));
+//        buildings.attachChild(createBox("building1", new Vector3f(-74, 36, 75), new Vector3f(23, 36, 23), ColorRGBA.Brown));
+//        buildings.attachChild(createBox("building2", new Vector3f(-70, 48, 26), new Vector3f(26, 48, 26), ColorRGBA.Brown));
+//        buildings.attachChild(createBox("building3", new Vector3f(-98, 34, -13), new Vector3f(51, 34, 13), ColorRGBA.Brown));
+//        buildings.attachChild(createBox("building4", new Vector3f(-77, 81, -101), new Vector3f(42, 81, 42), ColorRGBA.LightGray));
+//        buildings.attachChild(createBox("building5", new Vector3f(-92, 23, -146), new Vector3f(20, 23, 20), ColorRGBA.Brown));
+//        buildings.attachChild(createBox("building6", new Vector3f(95, 64, -94), new Vector3f(25, 64, 31), ColorRGBA.Brown));
+//        buildings.attachChild(createBox("building7", new Vector3f(123, 115, -6), new Vector3f(43, 115, 57), ColorRGBA.LightGray));
+//        buildings.attachChild(createBox("building8", new Vector3f(134, 34, 64), new Vector3f(51, 34, 13), ColorRGBA.Brown));
+//        buildings.attachChild(createBox("building9", new Vector3f(113, 36, 100), new Vector3f(23, 36, 23), ColorRGBA.Brown));
+
+        buildings.attachChild(createBuilding("building1", new Vector3f(-74, 0, 75), new Vector3f(23, 36, 23), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building2", new Vector3f(-70, 0, 26), new Vector3f(26, 48, 26), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building3", new Vector3f(-98, 0, -13), new Vector3f(51, 34, 13), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building4", new Vector3f(-77, 0, -101), new Vector3f(42, 81, 42), ColorRGBA.LightGray));
+        buildings.attachChild(createBuilding("building5", new Vector3f(-92, 0, -146), new Vector3f(20, 23, 20), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building6", new Vector3f(95, 0, -94), new Vector3f(25, 64, 31), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building7", new Vector3f(123, 0, -6), new Vector3f(43, 115, 57), ColorRGBA.LightGray));
+        buildings.attachChild(createBuilding("building8", new Vector3f(134, 0, 64), new Vector3f(51, 34, 13), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building9", new Vector3f(113, 0, 100), new Vector3f(23, 36, 23), ColorRGBA.Brown));
     
         Node cars = new Node("Cars");
-        cars.attachChild(createCar("car1", new Vector3f(-5, 3.5f, 0), new Vector3f(3, 3, 6), 0, ColorRGBA.Blue));
-        cars.attachChild(createCar("car2", new Vector3f(-5, 3.5f, -37), new Vector3f(3, 3, 6), 0, ColorRGBA.Blue));
-        cars.attachChild(createCar("car3", new Vector3f(-5, 3.5f, -74), new Vector3f(3, 3, 6), 0, ColorRGBA.Blue));
-        cars.attachChild(createCar("car4", new Vector3f(-5, 3.5f, 116), new Vector3f(3, 3, 6), 0, ColorRGBA.Blue));
-        cars.attachChild(createCar("car5", new Vector3f(38, 3.5f, -63), new Vector3f(3, 3, 6), (float)Math.PI, ColorRGBA.Blue));
-        cars.attachChild(createCar("car6", new Vector3f(38, 3.5f, 30), new Vector3f(3, 3, 6), (float)Math.PI, ColorRGBA.Blue));
-        cars.attachChild(createCar("car7", new Vector3f(38, 3.5f, 65), new Vector3f(3, 3, 6), (float)Math.PI, ColorRGBA.Blue));
+//        cars.attachChild(createCar("car1", new Vector3f(-5, 3.5f, 0), new Vector3f(3, 3, 6), 0, ColorRGBA.Blue));
+//        cars.attachChild(createCar("car2", new Vector3f(-5, 3.5f, -37), new Vector3f(3, 3, 6), 0, ColorRGBA.Blue));
+//        cars.attachChild(createCar("car3", new Vector3f(-5, 3.5f, -74), new Vector3f(3, 3, 6), 0, ColorRGBA.Blue));
+//        cars.attachChild(createCar("car4", new Vector3f(-5, 3.5f, 116), new Vector3f(3, 3, 6), 0, ColorRGBA.Blue));
+//        cars.attachChild(createCar("car5", new Vector3f(38, 3.5f, -63), new Vector3f(3, 3, 6), (float)Math.PI, ColorRGBA.Blue));
+//        cars.attachChild(createCar("car6", new Vector3f(38, 3.5f, 30), new Vector3f(3, 3, 6), (float)Math.PI, ColorRGBA.Blue));
+//        cars.attachChild(createCar("car7", new Vector3f(38, 3.5f, 65), new Vector3f(3, 3, 6), (float)Math.PI, ColorRGBA.Blue));
+        
+        float rot = (float) (Math.PI / 2);
+        
+        cars.attachChild(createCar("car1", new Vector3f(-5, 0, 0), new Vector3f(6, 6, 12), rot, ColorRGBA.Blue));
+        cars.attachChild(createCar("car1", new Vector3f(-5, 0, -37), new Vector3f(6, 6, 12), rot, ColorRGBA.Blue));
+        cars.attachChild(createCar("car1", new Vector3f(-5, 0, -74), new Vector3f(6, 6, 12), rot, ColorRGBA.Blue));
+        cars.attachChild(createCar("car1", new Vector3f(-5, 0, 116), new Vector3f(6, 6, 12), rot, ColorRGBA.Blue));
+        cars.attachChild(createCar("car1", new Vector3f(38, 0, -63), new Vector3f(6, 6, 12), -rot, ColorRGBA.Blue));
+        cars.attachChild(createCar("car1", new Vector3f(38, 0, 30), new Vector3f(6, 6, 12), -rot, ColorRGBA.Blue));
+        cars.attachChild(createCar("car1", new Vector3f(38, 0, 65), new Vector3f(6, 6, 12), -rot, ColorRGBA.Blue));
+
+
         
         Node coins = new Node("Coins");
         coins.attachChild(createCoin("coin1", new Vector3f(-5, 3.5f, 0)));
@@ -191,6 +216,18 @@ public class GameRunningAppState extends AbstractAppState {
         geom.setLocalTranslation(loc);
         geom.setLocalScale(scale);
         return geom;
+        
+  
+    }
+    
+    private Node createBuilding(String name, Vector3f loc, Vector3f scale, ColorRGBA color) {
+        LoadModel lm = new LoadModel(assetManager);
+        Spatial building = lm.load("Textures/Buildings/ResBuilding.j3o");
+        building.setLocalTranslation(loc);
+       
+        
+        return (Node) building;
+        
     }
     
     // helper function to quickly create a car (similar to createBox, setting name, location, scale, color, with addition of rotation).
@@ -198,21 +235,30 @@ public class GameRunningAppState extends AbstractAppState {
     private Node createCar(String name, Vector3f loc, Vector3f scale, float rot, ColorRGBA color) {
         Node car = new Node(name); 
         
+        LoadModel lm = new LoadModel(assetManager);
+        Spatial myModel = lm.load("Textures/Vehicles/BlueCar.j3o");
+        myModel.setLocalScale(scale);
+        
+        
+        
+        
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", color);
         
-        Geometry body = new Geometry(name + "_body", boxMesh);
-        body.setMaterial(mat);
-        body.setLocalScale(scale);
-        
-        Geometry front = new Geometry(name + "_front", boxMesh);
-        front.setMaterial(mat);
-        front.setLocalTranslation(0, -scale.y / 2.f, scale.z * 1.33f);
-        front.setLocalScale(scale.mult(1, .5f, .33f));
-                
-        // create body and front of car as separate objects, children to the parent car node
-        car.attachChild(body);
-        car.attachChild(front);
+//        Geometry body = new Geometry(name + "_body", boxMesh);
+//        body.setMaterial(mat);
+//        body.setLocalScale(scale);
+//        
+//        Geometry front = new Geometry(name + "_front", boxMesh);
+//        front.setMaterial(mat);
+//        front.setLocalTranslation(0, -scale.y / 2.f, scale.z * 1.33f);
+//        front.setLocalScale(scale.mult(1, .5f, .33f));
+//                
+//        // create body and front of car as separate objects, children to the parent car node
+//        car.attachChild(body);
+//        car.attachChild(front);
+        car.attachChild(myModel);
+      
         
         // move the car node and rotate it
         car.setLocalTranslation(loc);

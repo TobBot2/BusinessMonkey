@@ -49,9 +49,9 @@ public class Main extends SimpleApplication {
         
         createAndAnimateModels();
         DirectionalLight sun = new DirectionalLight();
-            sun.setDirection((new Vector3f(-0.5f, -0.5f, -0.5f)));
-            sun.setColor(ColorRGBA.White);
-            rootNode.addLight(sun);
+        sun.setDirection((new Vector3f(-0.5f, -0.5f, -0.5f)));
+        sun.setColor(ColorRGBA.White);
+        rootNode.addLight(sun);
         
         
         
@@ -74,17 +74,16 @@ public class Main extends SimpleApplication {
 
             
             
-            mymodel.setLocalTranslation(i, 0, 0); // Spread out models on the X-axis
-            mymodel.setLocalScale(0.5f);
+            mymodel.setLocalTranslation(i + 20, 0, 0);
+            mymodel.setLocalScale(1f);
+            mymodel.rotate(0, (float) Math.PI, 0);
            
             
             rootNode.attachChild(mymodel);
 
-            animateModel.playAnimationAll("Walk", 1.0f);
+            animateModel.playAnimationAll("Idle", 1.0f);
 
-        }
-        
-        
+        }  
         
     }
 
