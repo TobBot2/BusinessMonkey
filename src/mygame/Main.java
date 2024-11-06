@@ -10,7 +10,7 @@ import com.jme3.system.AppSettings;
  * @author Trevor Black & Liam Finn
  */
 public class Main extends SimpleApplication {
-
+    
     public static void main(String[] args) {
         Main app = new Main();
         
@@ -43,4 +43,5 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleRender(RenderManager rm) { }
+
 }

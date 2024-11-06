@@ -5,7 +5,11 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
+import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.control.BetterCharacterControl;
+import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.collision.CollisionResults;
+import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
@@ -15,11 +19,15 @@ import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.input.controls.Trigger;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
+import com.jme3.scene.CameraNode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.control.CameraControl;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
 
@@ -29,7 +37,7 @@ import com.jme3.scene.shape.Cylinder;
  * 
  * @author Trevor Black & Liam Finn
  */
-public class GameRunningAppState extends AbstractAppState {
+public class GameRunningAppState extends AbstractAppState implements ActionListener{
     // input/key mappings
     private final static Trigger TRIGGER_SHOOT = new MouseButtonTrigger(MouseInput.BUTTON_LEFT);
     private final static Trigger TRIGGER_PICKUP = new KeyTrigger(KeyInput.KEY_SPACE);
@@ -42,16 +50,57 @@ public class GameRunningAppState extends AbstractAppState {
     private Camera cam;
     private Node rootNode;
     private AssetManager assetManager;
+    private AppStateManager stateManager;
+    private InputManager inputManager;
     
     // reused variables
     private Ray ray = new Ray();
     private static final Box boxMesh = new Box(Vector3f.ZERO, 1, 1, 1);
     private static final Cylinder cylinderMesh = new Cylinder(10, 10, 1, 1, true);
     
+    // player variables
+    private Node playerNode;
+    private BetterCharacterControl playerControl;
+    private Vector3f walkDirection = new Vector3f(0,0,0);
+    private Vector3f viewDirection = new Vector3f(0,0,1);
+    private boolean rotateLeft = false, rotateRight = false, forward = false, backward = false;
+    private float speed=8;
+
     private int coinsCollected = 0;
     
     @Override
-    public void update(float tpf) { }
+    public void update(float tpf) {
+        CameraNode camNode = new CameraNode("CamNode",cam);
+        camNode.setControlDir(CameraControl.ControlDirection.SpatialToCamera);
+        camNode.setLocalTranslation(new Vector3f(0, 4, -6));
+        Quaternion quat = new Quaternion();
+        quat.lookAt(Vector3f.UNIT_Z,Vector3f.UNIT_Y);
+        camNode.setLocalRotation(quat);
+        playerNode.attachChild(camNode);
+        camNode.setEnabled(true);
+        this.app.getFlyByCamera().setEnabled(false);
+        
+        // Get current forward and left vectors of the playerNode:
+        Vector3f modelForwardDir = playerNode.getWorldRotation().mult(Vector3f.UNIT_Z);
+        Vector3f modelLeftDir = playerNode.getWorldRotation().mult(Vector3f.UNIT_X);
+        // Determine the change in direction
+        walkDirection.set(0, 0, 0);
+        if (forward) {
+            walkDirection.addLocal(modelForwardDir.mult(speed));
+        } else if (backward) {
+            walkDirection.addLocal(modelForwardDir.mult(speed).negate());
+        }
+        playerControl.setWalkDirection(walkDirection); // walk!
+        // Determine the change in rotation
+        if (rotateLeft) {
+            Quaternion rotateL = new Quaternion().fromAngleAxis(FastMath.PI * tpf, Vector3f.UNIT_Y);
+            rotateL.multLocal(viewDirection);
+        } else if (rotateRight) {
+            Quaternion rotateR = new Quaternion().fromAngleAxis(-FastMath.PI * tpf, Vector3f.UNIT_Y);
+            rotateR.multLocal(viewDirection);
+        }
+        playerControl.setViewDirection(viewDirection); // turn!
+    }
     
     // attempt to shoot a car located at the center of the screen, damaging it.
     private void shoot() {
@@ -107,14 +156,16 @@ public class GameRunningAppState extends AbstractAppState {
         this.cam = this.app.getCamera();
         this.rootNode = this.app.getRootNode();
         this.assetManager = this.app.getAssetManager();
+        this.stateManager = this.app.getStateManager();
+        this.inputManager = this.app.getInputManager();
         
         this.app.getFlyByCamera().setMoveSpeed(50f);
         
         // key mappings
-        this.app.getInputManager().addMapping(MAPPING_SHOOT, TRIGGER_SHOOT);
-        this.app.getInputManager().addMapping(MAPPING_PICKUP, TRIGGER_PICKUP);
-        this.app.getInputManager().addListener(analogListener, new String[]{MAPPING_SHOOT});
-        this.app.getInputManager().addListener(actionListener, new String[]{MAPPING_PICKUP});
+        this.inputManager.addMapping(MAPPING_SHOOT, TRIGGER_SHOOT);
+        this.inputManager.addMapping(MAPPING_PICKUP, TRIGGER_PICKUP);
+        this.inputManager.addListener(analogListener, new String[]{MAPPING_SHOOT});
+        this.inputManager.addListener(actionListener, new String[]{MAPPING_PICKUP});
         
         // crosshair
         Geometry c = createBox("crosshair", Vector3f.ZERO, new Vector3f(2, 2, 2), ColorRGBA.White);
@@ -122,6 +173,7 @@ public class GameRunningAppState extends AbstractAppState {
         this.app.getGuiNode().attachChild(c); // attach to 2D user interface
         
         initGeometry();
+        initPlayer();
     }
     
     private AnalogListener analogListener = new AnalogListener() {
@@ -139,6 +191,45 @@ public class GameRunningAppState extends AbstractAppState {
             }
         }
     };
+    
+    @Override
+    public void onAction(String binding, boolean isPressed, float tpf) {
+        if (binding.equals("Rotate Left")) { rotateLeft = isPressed; }
+        else if (binding.equals("Rotate Right")) { rotateRight = isPressed; }
+        else if (binding.equals("Forward")) { forward = isPressed; }
+        else if (binding.equals("Back")) { backward = isPressed; }
+        else if (binding.equals("Jump")) { playerControl.jump(); }
+    }
+    
+    private void initPlayer() {
+        // physics
+        BulletAppState bulletAppState = new BulletAppState();
+        this.stateManager.attach(bulletAppState);
+        RigidBodyControl scenePhy = new RigidBodyControl(0f);
+        this.rootNode.addControl(scenePhy);
+        bulletAppState.getPhysicsSpace().add(this.rootNode);
+        
+        this.playerNode = new Node("Player");
+        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0,-9.81f, 0));
+        this.playerNode.setLocalTranslation(new Vector3f(0, 6, 0));
+        rootNode.attachChild(this.playerNode);
+        
+        this.playerControl = new BetterCharacterControl(1.5f, 4, 30f);
+        this.playerControl.setJumpForce(new Vector3f(0, 300, 0));
+        this.playerControl.setGravity(new Vector3f(0, -10, 0));
+        
+        this.playerNode.addControl(this.playerControl);
+        bulletAppState.getPhysicsSpace().add(this.playerControl);
+        
+        // remap controls
+        inputManager.addMapping("Forward", new KeyTrigger(KeyInput.KEY_W));
+        inputManager.addMapping("Back", new KeyTrigger(KeyInput.KEY_S));
+        inputManager.addMapping("Rotate Left", new KeyTrigger(KeyInput.KEY_A));
+        inputManager.addMapping("Rotate Right", new KeyTrigger(KeyInput.KEY_D));
+        inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
+        inputManager.addListener(this, "Rotate Left", "Rotate Right");
+        inputManager.addListener(this, "Forward", "Back", "Jump");
+    }
     
     // initialize all static geometry, and group them in common nodes (ground, buildings, cars)
     private void initGeometry() {
@@ -190,6 +281,7 @@ public class GameRunningAppState extends AbstractAppState {
         geom.setMaterial(mat);
         geom.setLocalTranslation(loc);
         geom.setLocalScale(scale);
+                
         return geom;
     }
     
