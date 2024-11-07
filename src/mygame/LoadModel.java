@@ -29,42 +29,4 @@ public class LoadModel {
 }
     
     
-    
-//    public LoadModel() {
-//        
-//    }
-//
-//    public static void main(String[] args) {
-//        LoadModel app = new LoadModel();
-//        
-//        // set app settings
-//        AppSettings settings = new AppSettings(true);
-//        settings.setTitle("Business Monkey.");
-//        settings.setResolution(1600,1000);
-//        
-//        //app.setDisplayFps(false);
-//        //app.setDisplayStatView(false);
-//        app.setSettings(settings);
-//        app.setShowSettings(false);
-//        
-//        app.start();
-//    }
-//
-//    @Override
-//    public void simpleInitApp() {
-//        Spatial mymodel = assetManager.loadModel(
-//            "Textures/MonkeyUser/Jaime.j3o");
-//        rootNode.attachChild(mymodel);
-//        DirectionalLight sun = new DirectionalLight();
-//        sun.setDirection((new Vector3f(-0.5f, -0.5f, -0.5f)));
-//        sun.setColor(ColorRGBA.White);
-//        rootNode.addLight(sun);
-//    }
-//
-//    @Override
-//    public void simpleUpdate(float tpf) { }
-//
-//    @Override
-//    public void simpleRender(RenderManager rm) { }
-
-
+   
