@@ -17,7 +17,11 @@ import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.input.controls.Trigger;
+import com.jme3.light.AmbientLight;
+import com.jme3.light.DirectionalLight;
+import com.jme3.light.PointLight;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
@@ -61,6 +65,13 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     // player variables
     private Node playerNode;
     private BetterCharacterControl playerControl;
+    
+    private Geometry healthBar;
+    private float max_health = 10;
+    private float health = max_health;
+    private float hb_width;
+    private float hb_height;
+    
     private Vector3f walkDirection = new Vector3f(0,0,0);
     private Vector3f viewDirection = new Vector3f(0,0,1);
     private boolean rotateLeft = false, rotateRight = false, forward = false, backward = false;
@@ -100,6 +111,17 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             rotateR.multLocal(viewDirection);
         }
         playerControl.setViewDirection(viewDirection); // turn!
+        
+        // Update health bar width based on player's current health
+        if (health > 0) {
+            float healthPercentage = (float) health / max_health;
+            healthBar.setLocalScale(hb_width * healthPercentage, hb_height, 2);
+            float amountToShiftLeft = hb_width / max_health * (max_health - health);
+            healthBar.setLocalTranslation(hb_width + 40 - amountToShiftLeft, this.app.getContext().getSettings().getHeight() * 9 / 10, 0);
+        } else if (health == 0){
+            health = -1;
+            you_died();
+        }
     }
     
     // attempt to shoot a car located at the center of the screen, damaging it.
@@ -159,6 +181,9 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         this.stateManager = this.app.getStateManager();
         this.inputManager = this.app.getInputManager();
         
+        hb_width = this.app.getContext().getSettings().getWidth() / 8;
+        hb_height = this.app.getContext().getSettings().getHeight() / 20;
+        
         this.app.getFlyByCamera().setMoveSpeed(50f);
         
         // key mappings
@@ -172,8 +197,17 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         c.setLocalTranslation(this.app.getContext().getSettings().getWidth() / 2, this.app.getContext().getSettings().getHeight() / 2, 0);
         this.app.getGuiNode().attachChild(c); // attach to 2D user interface
         
+        //health bar
+        // Create a box to represent the health bar
+        healthBar = createBox("health bar", Vector3f.ZERO, new Vector3f(hb_width, hb_height, 2), ColorRGBA.Red);
+        healthBar.setLocalTranslation(hb_width + 40, this.app.getContext().getSettings().getHeight() * 9 / 10, 0);
+        // Attach the health bar to the GUI node to keep it fixed in 2D space
+        this.app.getGuiNode().attachChild(healthBar);
+        
         initGeometry();
         initPlayer();
+        
+        setupLights();
     }
     
     private AnalogListener analogListener = new AnalogListener() {
@@ -188,6 +222,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         public void onAction(String name, boolean isPressed, float tpf) {
             if (name.equals(MAPPING_PICKUP) && !isPressed) {
                 pickup();
+                if (health > 0) health--;
             }
         }
     };
@@ -277,7 +312,13 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     private Geometry createBox(String name, Vector3f loc, Vector3f scale, ColorRGBA color) {
         Geometry geom = new Geometry(name, boxMesh);
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        
+        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);  // Use alpha blending
+        mat.getAdditionalRenderState().setDepthWrite(false); 
+
         mat.setColor("Color", color);
+//        mat.setColor("Diffuse", color);
+//        mat.setColor("Ambient", color);
         geom.setMaterial(mat);
         geom.setLocalTranslation(loc);
         geom.setLocalScale(scale);
@@ -290,8 +331,10 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     private Node createCar(String name, Vector3f loc, Vector3f scale, float rot, ColorRGBA color) {
         Node car = new Node(name); 
         
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", color);
+        Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        mat.setBoolean("UseMaterialColors", true);
+        mat.setColor("Diffuse", ColorRGBA.Blue);
+        mat.setColor("Ambient", ColorRGBA.Gray);
         
         Geometry body = new Geometry(name + "_body", boxMesh);
         body.setMaterial(mat);
@@ -328,5 +371,39 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         coin.addControl(new CoinPickupControl());
         
         return coin;
+    }
+    
+    private void setupLights() {
+        AmbientLight ambient = new AmbientLight();
+        ambient.setColor(ColorRGBA.White.mult(0.3f));  // Set a low intensity for ambient light
+        app.getRootNode().addLight(ambient);  // Add ambient light to the root node
+        
+//        DirectionalLight sun = new DirectionalLight();
+//        sun.setDirection(new Vector3f(1, 0, -2));
+//        sun.setColor(ColorRGBA.White);
+//        app.getRootNode().addLight(sun);
+        
+        // Point light (can be added near a character or object)
+        PointLight pointLight = new PointLight();
+        pointLight.setPosition(new Vector3f(38, 3, 30));  // Position the light in space
+        pointLight.setColor(ColorRGBA.Blue);  // Set light color (white here)
+        pointLight.setRadius(100f);  // Set the radius of the light
+        app.getRootNode().addLight(pointLight);  // Add point light to the root node
+        
+        PointLight pointLight2 = new PointLight();
+        pointLight.setPosition(new Vector3f(38, 3, -60));  // Position the light in space
+        pointLight.setColor(ColorRGBA.Blue);  // Set light color (white here)
+        pointLight.setRadius(100f);  // Set the radius of the light
+        app.getRootNode().addLight(pointLight2);  // Add point light to the root node
+    }
+    
+    private void you_died() {
+        float screenWidth = app.getContext().getSettings().getWidth();
+        float screenHeight = app.getContext().getSettings().getHeight();
+        Geometry red_tint = createBox("red tint", new Vector3f(screenWidth / 2, screenHeight / 2 ,0), 
+                new Vector3f(screenWidth, screenHeight, 2), new ColorRGBA(1,0,0,0.2f));
+        this.app.getGuiNode().detachAllChildren();
+        this.app.getGuiNode().attachChild(red_tint);
+        speed = 0;
     }
 }
