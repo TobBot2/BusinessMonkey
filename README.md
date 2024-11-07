@@ -60,6 +60,20 @@ For interactions, the player can left click to shoot from the center of their sc
 
 The coins can be collected by pressing the spacebar while looking at it. It adds it's worth to the player's coinsCollected variable and outputs to the console the amount collected so far. In doing so, it also gets destroyed.
 
+Screenshots unavailable due to progress! See next set of deliverables for screenshots of the later versions.
+
 ### Second Deliverable
 
-Trevor is the GOAT.
+We have implemented importing models, including buildings, monkeys, and cars into the game. To do this, we have properly utilized the assetmanager object. Additionally, the monkey models (seen in the second image below) is animated. Though, the car model's mesh is currently not displaying 100% correctly. Textures are also utilized to correctly render the color of the monkeys.
+
+We have utilized the gui node to produce a health bar on the top left corner of the screen which currently goes down whenever the user presses the spacebar. When the player's health reaches 0, the screen tints red (also utilizing the gui node), and their movement is disabled.
+
+Lighting has been implemented, including ambient, point, directional (sun), and spotlights. These properly illuminate the environment and shaded materials.
+
+Finally, physics has also been implemented. The player may move forward and backward with W and S, as well as jump with spacebar. They can also look left and right with A and D.
+
+![image](image.png)
+
+![monkeys](image-1.png)
+
+![dead](image-2.png)

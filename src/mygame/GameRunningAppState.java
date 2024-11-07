@@ -433,8 +433,10 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     // creates pickup-able coin at a given location with the given name
     private Geometry createCoin(String name, Vector3f loc) {
         Geometry coin = new Geometry(name, cylinderMesh);
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", ColorRGBA.Yellow);
+        Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        mat.setBoolean("UseMaterialColors", true);
+        mat.setColor("Diffuse", ColorRGBA.Yellow);
+        mat.setColor("Ambient", ColorRGBA.Gray);
         coin.setMaterial(mat);
         coin.setLocalTranslation(loc);
         coin.setLocalScale(1, 1, .1f);
