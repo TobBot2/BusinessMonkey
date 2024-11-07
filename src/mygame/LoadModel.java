@@ -12,7 +12,7 @@ import com.jme3.asset.AssetManager;
 /**
  * LoadModel class of Business Monkey game
  * 
- * @author Trevor Black & Liam Finn
+ * @author Trevor Black & Liam Finn & Samuel Muzac
  */
 public class LoadModel {
     

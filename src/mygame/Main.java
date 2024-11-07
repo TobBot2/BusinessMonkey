@@ -12,7 +12,7 @@ import com.jme3.system.AppSettings;
 /**
  * Main class of Business Monkey game
  * 
- * @author Trevor Black & Liam Finn
+ * @author Trevor Black & Liam Finn & Samuel Muzac
  */
 public class Main extends SimpleApplication {
         private AnimateTriad animateModel;

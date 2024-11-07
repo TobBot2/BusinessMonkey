@@ -12,7 +12,7 @@ import com.jme3.scene.control.AbstractControl;
  *
  * Control for cars that will take damage and get destroyed after being depleted of health
  * 
- * @author Trevor Black & Liam Finn
+ * @author Trevor Black & Liam Finn & Samuel Muzac
  */
 public class ExplodeCarControl extends AbstractControl {
     

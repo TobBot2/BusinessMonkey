@@ -15,7 +15,7 @@ import com.jme3.scene.Node;
 /**
  * Main class of Business Monkey game
  * 
- * @author Trevor Black & Liam Finn
+ * @author Trevor Black & Liam Finn & Samuel Muzac
  */
 public class AnimateModel {
     
@@ -34,7 +34,7 @@ public class AnimateModel {
         }
             }
 
-        // Method to play a specific animation
+    // Method to play a specific animation
     public void playAnimation(String animationName, float speed) {
         if (channel != null) {
             channel.setAnim(animationName);

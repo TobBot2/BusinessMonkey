@@ -18,7 +18,7 @@ import java.util.ArrayList;
 /**
  * Main class of Business Monkey game
  * 
- * @author Trevor Black & Liam Finn
+ * @author Trevor Black & Liam Finn & Samuel Muzac
  */
 public class AnimateTriad {
 //    
@@ -51,7 +51,7 @@ public class AnimateTriad {
         }
     }
 
-        // Method to play a specific animation
+    // Method to play a specific animation
     public void playAnimationAll(String animationName, float speed) {
         for (AnimChannel channel: channels) {
             if (channel != null) {
@@ -59,8 +59,6 @@ public class AnimateTriad {
             channel.setSpeed(speed);
             }
         }
-        
-        
     }
     
     public void playAnimationSingle(int index, String animationName, float speed) {
@@ -71,8 +69,6 @@ public class AnimateTriad {
                 channel.setSpeed(speed);
             }
         }
-        
-        
     }
     
      public void stopAnimationAll() {
@@ -81,8 +77,6 @@ public class AnimateTriad {
                 channel.reset(true);
             }
         }
-        
-        
     }
     
     public void stopAnimationSingle(int index) {
@@ -92,15 +86,12 @@ public class AnimateTriad {
                 channel.reset(true);
                 
             }
-        }   
-        
+        }
     }
     
-      public List<Spatial> getTriadMonkeys() {
-            return triad;
-        }
-
-    
+    public List<Spatial> getTriadMonkeys() {
+        return triad;
+    }
 }
 
 

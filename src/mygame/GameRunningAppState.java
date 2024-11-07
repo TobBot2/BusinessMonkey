@@ -20,6 +20,7 @@ import com.jme3.input.controls.Trigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.light.PointLight;
+import com.jme3.light.SpotLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
@@ -40,7 +41,7 @@ import com.jme3.scene.shape.Cylinder;
  *
  * AppState in charge of running the demo level
  * 
- * @author Trevor Black & Liam Finn
+ * @author Trevor Black & Liam Finn & Samuel Muzac
  */
 public class GameRunningAppState extends AbstractAppState implements ActionListener{
     // input/key mappings
@@ -84,6 +85,12 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     
     @Override
     public void update(float tpf) {
+        cameraUpdate(tpf);
+        playerUpdate(tpf);
+    }
+    
+    // updates camera location and rotation each frame
+    private void cameraUpdate(float tpf) {
         CameraNode camNode = new CameraNode("CamNode",cam);
         camNode.setControlDir(CameraControl.ControlDirection.SpatialToCamera);
         camNode.setLocalTranslation(new Vector3f(0, 4, -6));
@@ -93,7 +100,10 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         playerNode.attachChild(camNode);
         camNode.setEnabled(true);
         this.app.getFlyByCamera().setEnabled(false);
-        
+    }
+    
+    // updates player location and rotation each frame
+    private void playerUpdate(float tpf) {
         // Get current forward and left vectors of the playerNode:
         Vector3f modelForwardDir = playerNode.getWorldRotation().mult(Vector3f.UNIT_Z);
         Vector3f modelLeftDir = playerNode.getWorldRotation().mult(Vector3f.UNIT_X);
@@ -172,6 +182,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     
     @Override
     public void cleanup() {}
+    
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
@@ -196,24 +207,25 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         this.inputManager.addListener(actionListener, new String[]{MAPPING_PICKUP});
         
         // crosshair
-        Geometry c = createBox("crosshair", Vector3f.ZERO, new Vector3f(2, 2, 2), ColorRGBA.White);
+        Geometry c = createGuiBox("crosshair", Vector3f.ZERO, new Vector3f(2, 2, 2), ColorRGBA.White);
         c.setLocalTranslation(this.app.getContext().getSettings().getWidth() / 2, this.app.getContext().getSettings().getHeight() / 2, 0);
         this.app.getGuiNode().attachChild(c); // attach to 2D user interface
         
         //health bar
         // Create a box to represent the health bar
-        healthBar = createBox("health bar", Vector3f.ZERO, new Vector3f(hb_width, hb_height, 2), ColorRGBA.Red);
+        healthBar = createGuiBox("health bar", Vector3f.ZERO, new Vector3f(hb_width, hb_height, 2), ColorRGBA.Red);
         healthBar.setLocalTranslation(hb_width + 40, this.app.getContext().getSettings().getHeight() * 9 / 10, 0);
         // Attach the health bar to the GUI node to keep it fixed in 2D space
         this.app.getGuiNode().attachChild(healthBar);
         
         initGeometry();
         initPlayer();
-        
+        createAndAnimateModels();
 
         setupLights();
     }
     
+    // map input to shoot
     private AnalogListener analogListener = new AnalogListener() {
         public void onAnalog(String name, float intensity, float tpf) {
             if (name.equals(MAPPING_SHOOT)) {
@@ -222,6 +234,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         }
     };
     
+    // map input to pick up items (and damage player)
     private ActionListener actionListener = new ActionListener() {
         public void onAction(String name, boolean isPressed, float tpf) {
             if (name.equals(MAPPING_PICKUP) && !isPressed) {
@@ -231,6 +244,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         }
     };
     
+    // handle inputs to control player/camera
     @Override
     public void onAction(String binding, boolean isPressed, float tpf) {
         if (binding.equals("Rotate Left")) { rotateLeft = isPressed; }
@@ -248,6 +262,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         this.rootNode.addControl(scenePhy);
         bulletAppState.getPhysicsSpace().add(this.rootNode);
         
+        // player
         this.playerNode = new Node("Player");
         bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0,-9.81f, 0));
         this.playerNode.setLocalTranslation(new Vector3f(0, 6, 0));
@@ -270,50 +285,33 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         inputManager.addListener(this, "Forward", "Back", "Jump");
     }
     
+    private void createAndAnimateModels() {
+        loadMonkeyTriad();
+    }
     
-    
-//    private void createAndAnimateModels() {
-//        loadMonkeyTriad();
-//        
-//    }
-//    
-//    private void loadMonkeyTriad() {
-//        //Monkey Enemies
-//        Node monkeyTriadNode = new Node("MonkeyTriad");
-//        for (int i = 0; i < 3; i++) {
-//            
-//            LoadModel loadModel = new LoadModel(assetManager);
-//            Spatial mymodel = loadModel.load(
-//                "Textures/MonkeyEnemy/Jaime.j3o");
-//            animateModel = new AnimateTriad(assetManager);
-//            animateModel.createInstance(mymodel);
-//
-//            
-//            
-//            mymodel.setLocalTranslation(i + 20, 0, 0);
-//            mymodel.setLocalScale(1f);
-//            mymodel.rotate(0, (float) Math.PI, 0);
-//           
-//            
-//            monkeyTriadNode.attachChild(mymodel);
-//
-//            animateModel.playAnimationAll("Idle", 1.0f);
-//
-//        }
-//        
-//        //physics
-//        BulletAppState bulletAppState = new BulletAppState();
-//        this.stateManager.attach(bulletAppState);
-//        RigidBodyControl scenePhy = new RigidBodyControl(0f);
-//        this.rootNode.addControl(scenePhy);
-//        bulletAppState.getPhysicsSpace().add(this.rootNode);
-//        
-//        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0,-9.81f, 0));
-//        rootNode.attachChild(monkeyTriadNode);
-//        
-//               
-//        
-//    } 
+    // loads array of monkeys into scene to animate default idle
+    private void loadMonkeyTriad() {
+        //Monkey Enemies
+        Node monkeyTriadNode = new Node("MonkeyTriad");
+        for (int i = 0; i < 3; i++) {
+            
+            LoadModel loadModel = new LoadModel(assetManager);
+            Spatial mymodel = loadModel.load("Textures/MonkeyEnemy/Jaime.j3o");
+            animateModel = new AnimateTriad(assetManager);
+            animateModel.createInstance(mymodel);
+            
+            mymodel.setLocalTranslation(i + 20, 0, 0);
+            mymodel.setLocalScale(1f);
+            mymodel.rotate(0, (float) Math.PI, 0);
+            
+            monkeyTriadNode.attachChild(mymodel);
+
+            // idle by default
+            animateModel.playAnimationAll("Idle", 1.0f);
+        }
+        
+        rootNode.attachChild(monkeyTriadNode);
+    } 
     
     // initialize all static geometry, and group them in common nodes (ground, buildings, cars)
     private void initGeometry() {
@@ -336,8 +334,6 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     
         Node cars = new Node("Cars");
         float rot = (float) (Math.PI / 2);
-        
-        
         cars.attachChild(createCar("car1", new Vector3f(-5, 0, 0), new Vector3f(6, 6, 12), rot, ColorRGBA.Blue));
         cars.attachChild(createCar("car1", new Vector3f(-5, 0, -37), new Vector3f(6, 6, 12), rot, ColorRGBA.Blue));
         cars.attachChild(createCar("car1", new Vector3f(-5, 0, -74), new Vector3f(6, 6, 12), rot, ColorRGBA.Blue));
@@ -345,7 +341,6 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         cars.attachChild(createCar("car1", new Vector3f(38, 0, -63), new Vector3f(6, 6, 12), -rot, ColorRGBA.Blue));
         cars.attachChild(createCar("car1", new Vector3f(38, 0, 30), new Vector3f(6, 6, 12), -rot, ColorRGBA.Blue));
         cars.attachChild(createCar("car1", new Vector3f(38, 0, 65), new Vector3f(6, 6, 12), -rot, ColorRGBA.Blue));
-
         
         Node coins = new Node("Coins");
         coins.attachChild(createCoin("coin1", new Vector3f(-5, 3.5f, 0)));
@@ -362,17 +357,29 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         rootNode.attachChild(coins);
     }
     
-    // helper function to quickly create a box geometry with a given name, location, scale, and color
-    private Geometry createBox(String name, Vector3f loc, Vector3f scale, ColorRGBA color) {
+    // creates a box for GUI use (no shading)
+    private Geometry createGuiBox(String name, Vector3f loc, Vector3f scale, ColorRGBA color) {
         Geometry geom = new Geometry(name, boxMesh);
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"); // unshaded for GUI
+        mat.setColor("Color", color);
         
         mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);  // Use alpha blending
-        mat.getAdditionalRenderState().setDepthWrite(false); 
+        mat.getAdditionalRenderState().setDepthWrite(false);
+        
+        geom.setMaterial(mat);
+        geom.setLocalTranslation(loc);
+        geom.setLocalScale(scale);
+                
+        return geom;
+    }
+    
+    // helper function to quickly create a box geometry with a given name, location, scale, and color. Uses phong shading
+    private Geometry createBox(String name, Vector3f loc, Vector3f scale, ColorRGBA color) {
+        Geometry geom = new Geometry(name, boxMesh);
+        Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        mat.setColor("Diffuse", color);
+        mat.setColor("Ambient", color);
 
-        mat.setColor("Color", color);
-//        mat.setColor("Diffuse", color);
-//        mat.setColor("Ambient", color);
         geom.setMaterial(mat);
         geom.setLocalTranslation(loc);
         geom.setLocalScale(scale);
@@ -383,8 +390,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     // helper function to quickly create a car (similar to createBox, setting name, location, scale, color, with addition of rotation).
     // The scale determines the size of the main body of the car
     private Node createCar(String name, Vector3f loc, Vector3f scale, float rot, ColorRGBA color) {
-        Node car = new Node(name); 
-        
+        Node car = new Node(name);
 
         Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         mat.setBoolean("UseMaterialColors", true);
@@ -393,30 +399,18 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         
         LoadModel lm = new LoadModel(assetManager);
         Spatial myModel = lm.load("Textures/Vehicles/BlueCar.j3o");
-        myModel.setLocalScale(scale);
+        myModel.setLocalScale(Vector3f.UNIT_XYZ.mult(3));
         myModel.setMaterial(mat);
-
         
+        SpotLight spot = new SpotLight();
+        spot.setSpotRange(100);
+        spot.setSpotOuterAngle(20 * FastMath.DEG_TO_RAD);
+        spot.setSpotInnerAngle(15 * FastMath.DEG_TO_RAD);
+        spot.setDirection(Vector3f.UNIT_Z);
+        car.addLight(spot);
 
-//        
-//        Geometry body = new Geometry(name + "_body", boxMesh);
-//        body.setMaterial(mat);
-//        body.setLocalScale(scale);
-//        
-//        Geometry front = new Geometry(name + "_front", boxMesh);
-//        front.setMaterial(mat);
-//        front.setLocalTranslation(0, -scale.y / 2.f, scale.z * 1.33f);
-//        front.setLocalScale(scale.mult(1, .5f, .33f));
-//                
-//        // create body and front of car as separate objects, children to the parent car node
-//        car.attachChild(body);
-//        car.attachChild(front);
-//        
         // move the car node and rotate it
-        
         car.attachChild(myModel);
-
-        
         car.setLocalTranslation(loc);
         car.rotate(0, rot, 0);
         
@@ -426,14 +420,13 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         return car;
     }
     
+    // loads building model into scene at location, scale, and color
     private Node createBuilding(String name, Vector3f loc, Vector3f scale, ColorRGBA color) {
         LoadModel lm = new LoadModel(assetManager);
         Spatial building = lm.load("Textures/Buildings/ResBuilding.j3o");
         building.setLocalTranslation(loc);
-       
         
         return (Node) building;
-        
     }
 
     
@@ -452,16 +445,18 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     }
 
     
+    // adds general lighting (ambient, sun, some points)
     private void setupLights() {
+        // add lighting
         AmbientLight ambient = new AmbientLight();
-        ambient.setColor(ColorRGBA.White.mult(0.3f));  // Set a low intensity for ambient light
-        app.getRootNode().addLight(ambient);  // Add ambient light to the root node
-        
-//        DirectionalLight sun = new DirectionalLight();
-//        sun.setDirection(new Vector3f(1, 0, -2));
-//        sun.setColor(ColorRGBA.White);
-//        app.getRootNode().addLight(sun);
-        
+        ambient.setColor(ColorRGBA.White.mult(.1f));
+        rootNode.addLight(ambient);
+
+        DirectionalLight sun = new DirectionalLight();
+        sun.setDirection(new Vector3f(1,0,-2));
+        sun.setColor(ColorRGBA.White);
+        rootNode.addLight(sun);
+
         // Point light (can be added near a character or object)
         PointLight pointLight = new PointLight();
         pointLight.setPosition(new Vector3f(38, 3, 30));  // Position the light in space
@@ -476,10 +471,11 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         app.getRootNode().addLight(pointLight2);  // Add point light to the root node
     }
     
+    // create red tint over screen
     private void you_died() {
         float screenWidth = app.getContext().getSettings().getWidth();
         float screenHeight = app.getContext().getSettings().getHeight();
-        Geometry red_tint = createBox("red tint", new Vector3f(screenWidth / 2, screenHeight / 2 ,0), 
+        Geometry red_tint = createGuiBox("red tint", new Vector3f(screenWidth / 2, screenHeight / 2 ,0), 
                 new Vector3f(screenWidth, screenHeight, 2), new ColorRGBA(1,0,0,0.2f));
         this.app.getGuiNode().detachAllChildren();
         this.app.getGuiNode().attachChild(red_tint);
