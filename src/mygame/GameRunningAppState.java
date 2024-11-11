@@ -15,6 +15,7 @@ import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
+import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.input.controls.Trigger;
 import com.jme3.light.AmbientLight;
@@ -47,59 +48,270 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     // input/key mappings
     private final static Trigger TRIGGER_SHOOT = new MouseButtonTrigger(MouseInput.BUTTON_LEFT);
     private final static Trigger TRIGGER_PICKUP = new KeyTrigger(KeyInput.KEY_SPACE);
-
     private final static String MAPPING_SHOOT = "Shoot";
     private final static String MAPPING_PICKUP = "Pickup";
     
     // application variables
     private SimpleApplication app;
     private Camera cam;
+    private CameraNode camNode;
     private Node rootNode;
     private AssetManager assetManager;
     private AppStateManager stateManager;
     private InputManager inputManager;
     
     // reused variables
-    private Ray ray = new Ray();
+    private final Ray ray = new Ray();
     private static final Box boxMesh = new Box(Vector3f.ZERO, 1, 1, 1);
     private static final Cylinder cylinderMesh = new Cylinder(10, 10, 1, 1, true);
+    private int app_width, app_height;
     
     // player variables
     private Node playerNode;
     private BetterCharacterControl playerControl;
     
     private Geometry healthBar;
-    private float max_health = 10;
+    private final float max_health = 10;
     private float health = max_health;
-    private float hb_width;
-    private float hb_height;
+    private float hb_width, hb_height;
     
-    private Vector3f walkDirection = new Vector3f(0,0,0);
-    private Vector3f viewDirection = new Vector3f(0,0,1);
-    private boolean rotateLeft = false, rotateRight = false, forward = false, backward = false;
+    private final Vector3f walkDirection = new Vector3f(0,0,0);
+    private final Vector3f viewDirection = new Vector3f(0,0,1);
+    private boolean moveLeft = false, moveRight = false, forward = false, backward = false;
     private float speed=8;
 
     private int coinsCollected = 0;
     private AnimateTriad animateModel;
 
+        @Override
+    public void initialize(AppStateManager stateManager, Application app) {
+        super.initialize(stateManager, app);
+        
+        // app settings/variables
+        this.app = (SimpleApplication) app;
+        this.cam = this.app.getCamera();
+        this.rootNode = this.app.getRootNode();
+        this.assetManager = this.app.getAssetManager();
+        this.stateManager = this.app.getStateManager();
+        this.inputManager = this.app.getInputManager();
+        app_width = this.app.getContext().getSettings().getWidth();
+        app_height = this.app.getContext().getSettings().getHeight();
+        hb_width = app_width / 8;
+        hb_height = app_height / 20;
+        
+//        // key mappings
+        initKeyMappings();
+//        //geometry
+        initGeometry();
+//        //player
+        initPlayer();
+//        //lighting
+        setupLights();
+        //models
+        createAndAnimateModels();
+//        //camera
+        initCamera();
+        
+        // crosshair
+        Geometry c = new Geometry("crosshair", boxMesh);
+        Material crosshairMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        crosshairMaterial.setColor("Color", ColorRGBA.White);
+        c.setMaterial(crosshairMaterial);
+        c.setLocalTranslation(app_width / 2, app_height / 2, 0);
+        this.app.getGuiNode().attachChild(c); // attach to 2D user interface
+        
+        //health bar
+        Vector3f healthBarPosition = new Vector3f(hb_width + 40, app_height * 9 / 10, 0);
+        healthBar = new Geometry("health bar", boxMesh);
+        Material healthBarMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        healthBarMaterial.setColor("Color", ColorRGBA.Red);
+        healthBar.setMaterial(healthBarMaterial);
+        healthBar.setLocalTranslation(healthBarPosition);
+        healthBar.setLocalScale(hb_width, hb_height, 2);
+        this.app.getGuiNode().attachChild(healthBar);
+    }
+
+    private void initKeyMappings() {
+        this.inputManager.addMapping(MAPPING_SHOOT, TRIGGER_SHOOT);
+        this.inputManager.addMapping(MAPPING_PICKUP, TRIGGER_PICKUP);
+        this.inputManager.addListener(analogListener, new String[]{MAPPING_SHOOT});
+        this.inputManager.addListener(actionListener, new String[]{MAPPING_PICKUP});
+    }
+        
+            // initialize all static geometry, and group them in common nodes (ground, buildings, cars)
+    private void initGeometry() {
+        Node ground = new Node("Ground");
+        ground.attachChild(createBox("floor", new Vector3f(0, -2, 0), new Vector3f(250, 1, 250), ColorRGBA.DarkGray));
+        ground.attachChild(createBox("sidewalk1", new Vector3f(-91, -1, -19), new Vector3f(80, .5f, 185), ColorRGBA.Gray));
+        ground.attachChild(createBox("sidewalk2", new Vector3f(128, -1, -19), new Vector3f(80, .5f, 185), ColorRGBA.Gray));
+        
+        Node buildings = new Node("Buildings");
+        buildings.attachChild(createBuilding("building1", new Vector3f(-74, 0, 75), new Vector3f(23, 36, 23), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building2", new Vector3f(-70, 0, 26), new Vector3f(26, 48, 26), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building3", new Vector3f(-98, 0, -13), new Vector3f(51, 34, 13), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building4", new Vector3f(-77, 0, -101), new Vector3f(42, 81, 42), ColorRGBA.LightGray));
+        buildings.attachChild(createBuilding("building5", new Vector3f(-92, 0, -146), new Vector3f(20, 23, 20), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building6", new Vector3f(95, 0, -94), new Vector3f(25, 64, 31), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building7", new Vector3f(123, 0, -6), new Vector3f(43, 115, 57), ColorRGBA.LightGray));
+        buildings.attachChild(createBuilding("building8", new Vector3f(134, 0, 64), new Vector3f(51, 34, 13), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building9", new Vector3f(113, 0, 100), new Vector3f(23, 36, 23), ColorRGBA.Brown));
+
+    
+        Node cars = new Node("Cars");
+        float rot = (float) (Math.PI / 2);
+        cars.attachChild(createCar("car1", new Vector3f(-5, 0, 0), new Vector3f(6, 6, 12), rot, ColorRGBA.Blue));
+        cars.attachChild(createCar("car1", new Vector3f(-5, 0, -37), new Vector3f(6, 6, 12), rot, ColorRGBA.Blue));
+        cars.attachChild(createCar("car1", new Vector3f(-5, 0, -74), new Vector3f(6, 6, 12), rot, ColorRGBA.Blue));
+        cars.attachChild(createCar("car1", new Vector3f(-5, 0, 116), new Vector3f(6, 6, 12), rot, ColorRGBA.Blue));
+        cars.attachChild(createCar("car1", new Vector3f(38, 0, -63), new Vector3f(6, 6, 12), -rot, ColorRGBA.Blue));
+        cars.attachChild(createCar("car1", new Vector3f(38, 0, 30), new Vector3f(6, 6, 12), -rot, ColorRGBA.Blue));
+        cars.attachChild(createCar("car1", new Vector3f(38, 0, 65), new Vector3f(6, 6, 12), -rot, ColorRGBA.Blue));
+        
+        Node coins = new Node("Coins");
+        coins.attachChild(createCoin("coin1", new Vector3f(-5, 3.5f, 0)));
+        coins.attachChild(createCoin("coin2", new Vector3f(-5, 3.5f, -37)));
+        coins.attachChild(createCoin("coin3", new Vector3f(-5, 3.5f, -74)));
+        coins.attachChild(createCoin("coin4", new Vector3f(-5, 3.5f, 116)));
+        coins.attachChild(createCoin("coin5", new Vector3f(38, 3.5f, -63)));
+        coins.attachChild(createCoin("coin6", new Vector3f(38, 3.5f, 30)));
+        coins.attachChild(createCoin("coin7", new Vector3f(38, 3.5f, 65)));
+        
+        rootNode.attachChild(ground);
+        rootNode.attachChild(buildings);
+        rootNode.attachChild(cars);
+        rootNode.attachChild(coins);
+    }
+    
+    private void initPlayer() {
+        BulletAppState bulletAppState = new BulletAppState();
+        this.stateManager.attach(bulletAppState);
+        RigidBodyControl scenePhy = new RigidBodyControl(0f);
+        this.rootNode.addControl(scenePhy);
+        bulletAppState.getPhysicsSpace().add(this.rootNode);
+        
+        this.playerNode = new Node("Player");
+        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0,-20f, 0));
+        this.playerNode.setLocalTranslation(new Vector3f(0, 6, 0));
+        rootNode.attachChild(this.playerNode);
+        
+        this.playerControl = new BetterCharacterControl(1.5f, 4, 40f);
+        this.playerControl.setJumpForce(new Vector3f(0, 600, 0));
+        this.playerControl.setGravity(new Vector3f(0, -50f, 0));
+        
+        this.playerNode.addControl(this.playerControl);
+        bulletAppState.getPhysicsSpace().add(this.playerControl);
+        
+        // remap controls
+        inputManager.addMapping("Forward", new KeyTrigger(KeyInput.KEY_W));
+        inputManager.addMapping("Back", new KeyTrigger(KeyInput.KEY_S));
+        inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_A));
+        inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_D));
+        inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
+        inputManager.addListener(this, "Forward", "Back", "Left", "Right", "Jump");
+    }
+    
+    // adds general lighting (ambient, sun, some points)
+    private void setupLights() {
+        // add lighting
+        AmbientLight ambient = new AmbientLight();
+        ambient.setColor(ColorRGBA.White.mult(.1f));
+        rootNode.addLight(ambient);
+
+        DirectionalLight sun = new DirectionalLight();
+        sun.setDirection(new Vector3f(1,0,-2));
+        sun.setColor(ColorRGBA.White);
+        rootNode.addLight(sun);
+
+        // Point light (can be added near a character or object)
+        PointLight pointLight = new PointLight();
+        pointLight.setPosition(new Vector3f(38, 3, 30));  // Position the light in space
+        pointLight.setColor(ColorRGBA.Blue);  // Set light color (white here)
+        pointLight.setRadius(100f);  // Set the radius of the light
+        app.getRootNode().addLight(pointLight);  // Add point light to the root node
+        
+        PointLight pointLight2 = new PointLight();
+        pointLight.setPosition(new Vector3f(38, 3, -60));  // Position the light in space
+        pointLight.setColor(ColorRGBA.Blue);  // Set light color (white here)
+        pointLight.setRadius(100f);  // Set the radius of the light
+        app.getRootNode().addLight(pointLight2);  // Add point light to the root node
+    }
+    
+    private void initCamera() {
+        camNode = new CameraNode("CamNode", cam);
+        camNode.setControlDir(CameraControl.ControlDirection.SpatialToCamera);
+        camNode.setLocalTranslation(new Vector3f(0, 4f, 0)); // Set camera height relative to player
+        playerNode.attachChild(camNode);
+        
+//        float aspect = (float) cam.getWidth() / (float) cam.getHeight();
+//        // Define the field of view (FOV)
+//        float fov = 45f; // Field of view angle in degrees
+//
+//        // Calculate the frustum size at the near plane based on the FOV and aspect ratio
+//        float top = (float) Math.tan(Math.toRadians(fov / 2)) * 1f;
+//        float bottom = -top;
+//        float right = top * aspect;
+//        float left = -right;
+//        
+//        cam.setFrustumLeft(left);
+//        cam.setFrustumRight(right);
+//        cam.setFrustumTop(top);
+//        cam.setFrustumBottom(bottom);
+//        cam.setFrustumNear(1f);
+//        cam.setFrustumFar(1000f);
+
+        inputManager.addMapping("MouseMoveLeft", new MouseAxisTrigger(MouseInput.AXIS_X, true));
+        inputManager.addMapping("MouseMoveRight", new MouseAxisTrigger(MouseInput.AXIS_X, false));
+        inputManager.addMapping("MouseMoveUp", new MouseAxisTrigger(MouseInput.AXIS_Y, false));
+        inputManager.addMapping("MouseMoveDown", new MouseAxisTrigger(MouseInput.AXIS_Y, true));
+        inputManager.addListener(analogListener, "MouseMoveLeft", "MouseMoveRight", "MouseMoveUp", "MouseMoveDown");
+    }
+    
+    private void createAndAnimateModels() {
+        loadMonkeyTriad();
+    }
+    
+    // loads array of monkeys into scene to animate default idle
+    private void loadMonkeyTriad() {
+        //Monkey Enemies
+        Node monkeyTriadNode = new Node("MonkeyTriad");
+        for (int i = 0; i < 3; i++) {
+            
+            LoadModel loadModel = new LoadModel(assetManager);
+            Spatial mymodel = loadModel.load("Textures/MonkeyEnemy/Jaime.j3o");
+            animateModel = new AnimateTriad(assetManager);
+            animateModel.createInstance(mymodel);
+            
+            mymodel.setLocalTranslation(i + 20, 0, 0);
+            mymodel.setLocalScale(1f);
+            mymodel.rotate(0, (float) Math.PI, 0);
+            
+            monkeyTriadNode.attachChild(mymodel);
+
+            // idle by default
+            animateModel.playAnimationAll("Idle", 1.0f);
+        }
+        
+        rootNode.attachChild(monkeyTriadNode);
+    }
     
     @Override
     public void update(float tpf) {
         cameraUpdate(tpf);
         playerUpdate(tpf);
+        healthUpdate();
     }
     
     // updates camera location and rotation each frame
     private void cameraUpdate(float tpf) {
-        CameraNode camNode = new CameraNode("CamNode",cam);
-        camNode.setControlDir(CameraControl.ControlDirection.SpatialToCamera);
-        camNode.setLocalTranslation(new Vector3f(0, 4, -6));
-        Quaternion quat = new Quaternion();
-        quat.lookAt(Vector3f.UNIT_Z,Vector3f.UNIT_Y);
-        camNode.setLocalRotation(quat);
-        playerNode.attachChild(camNode);
-        camNode.setEnabled(true);
-        this.app.getFlyByCamera().setEnabled(false);
+//        CameraNode camNode = new CameraNode("CamNode",cam);
+//        camNode.setControlDir(CameraControl.ControlDirection.SpatialToCamera);
+//        camNode.setLocalTranslation(new Vector3f(0, 4, -6));
+//        Quaternion quat = new Quaternion();
+//        quat.lookAt(Vector3f.UNIT_Z,Vector3f.UNIT_Y);
+//        camNode.setLocalRotation(quat);
+//        playerNode.attachChild(camNode);
+//        camNode.setEnabled(true);
+//        this.app.getFlyByCamera().setEnabled(false);
     }
     
     // updates player location and rotation each frame
@@ -111,21 +323,22 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         walkDirection.set(0, 0, 0);
         if (forward) {
             walkDirection.addLocal(modelForwardDir.mult(speed));
-        } else if (backward) {
+        }
+        if (backward) {
             walkDirection.addLocal(modelForwardDir.mult(speed).negate());
         }
-        playerControl.setWalkDirection(walkDirection); // walk!
-        // Determine the change in rotation
-        if (rotateLeft) {
+        if (moveLeft) {
             Quaternion rotateL = new Quaternion().fromAngleAxis(FastMath.PI * tpf, Vector3f.UNIT_Y);
-            rotateL.multLocal(viewDirection);
-        } else if (rotateRight) {
-            Quaternion rotateR = new Quaternion().fromAngleAxis(-FastMath.PI * tpf, Vector3f.UNIT_Y);
-            rotateR.multLocal(viewDirection);
+            walkDirection.addLocal(modelLeftDir.mult(speed));
         }
-        playerControl.setViewDirection(viewDirection); // turn!
-        
-        // Update health bar width based on player's current health
+        if (moveRight) {
+            walkDirection.addLocal(modelLeftDir.mult(speed).negate());
+        }
+        playerControl.setWalkDirection(walkDirection); // walk!
+        playerControl.setViewDirection(modelForwardDir); // turn!
+    }
+    
+    private void healthUpdate() {
         if (health > 0) {
             float healthPercentage = (float) health / max_health;
             healthBar.setLocalScale(hb_width * healthPercentage, hb_height, 2);
@@ -182,60 +395,36 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     
     @Override
     public void cleanup() {}
-    
-    @Override
-    public void initialize(AppStateManager stateManager, Application app) {
-        super.initialize(stateManager, app);
         
-        // app settings/variables
-        this.app = (SimpleApplication) app;
-        this.cam = this.app.getCamera();
-        this.rootNode = this.app.getRootNode();
-        this.assetManager = this.app.getAssetManager();
-        this.stateManager = this.app.getStateManager();
-        this.inputManager = this.app.getInputManager();
-        
-        hb_width = this.app.getContext().getSettings().getWidth() / 8;
-        hb_height = this.app.getContext().getSettings().getHeight() / 20;
-        
-        this.app.getFlyByCamera().setMoveSpeed(50f);
-        
-        // key mappings
-        this.inputManager.addMapping(MAPPING_SHOOT, TRIGGER_SHOOT);
-        this.inputManager.addMapping(MAPPING_PICKUP, TRIGGER_PICKUP);
-        this.inputManager.addListener(analogListener, new String[]{MAPPING_SHOOT});
-        this.inputManager.addListener(actionListener, new String[]{MAPPING_PICKUP});
-        
-        // crosshair
-        Geometry c = createGuiBox("crosshair", Vector3f.ZERO, new Vector3f(2, 2, 2), ColorRGBA.White);
-        c.setLocalTranslation(this.app.getContext().getSettings().getWidth() / 2, this.app.getContext().getSettings().getHeight() / 2, 0);
-        this.app.getGuiNode().attachChild(c); // attach to 2D user interface
-        
-        //health bar
-        // Create a box to represent the health bar
-        healthBar = createGuiBox("health bar", Vector3f.ZERO, new Vector3f(hb_width, hb_height, 2), ColorRGBA.Red);
-        healthBar.setLocalTranslation(hb_width + 40, this.app.getContext().getSettings().getHeight() * 9 / 10, 0);
-        // Attach the health bar to the GUI node to keep it fixed in 2D space
-        this.app.getGuiNode().attachChild(healthBar);
-        
-        initGeometry();
-        initPlayer();
-        createAndAnimateModels();
-
-        setupLights();
-    }
-    
     // map input to shoot
     private AnalogListener analogListener = new AnalogListener() {
+        @Override
         public void onAnalog(String name, float intensity, float tpf) {
-            if (name.equals(MAPPING_SHOOT)) {
-                shoot();
+            switch (name) {
+                case MAPPING_SHOOT:
+                    shoot();
+                    break;
+                case "MouseMoveLeft":
+                    playerNode.rotate(0, intensity, 0); // Rotate player left around Y-axis
+                    break;
+                case "MouseMoveRight":
+                    playerNode.rotate(0, -intensity, 0); // Rotate player right around Y-axis
+                    break;
+                case "MouseMoveUp":
+                    camNode.rotate(-intensity, 0, 0); // Tilt up
+                    break;
+                case "MouseMoveDown":
+                    camNode.rotate(intensity, 0, 0); // Tilt down
+                    break;
+                default:
+                    break;
             }
         }
     };
     
     // map input to pick up items (and damage player)
     private ActionListener actionListener = new ActionListener() {
+        @Override
         public void onAction(String name, boolean isPressed, float tpf) {
             if (name.equals(MAPPING_PICKUP) && !isPressed) {
                 pickup();
@@ -247,115 +436,16 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     // handle inputs to control player/camera
     @Override
     public void onAction(String binding, boolean isPressed, float tpf) {
-        if (binding.equals("Rotate Left")) { rotateLeft = isPressed; }
-        else if (binding.equals("Rotate Right")) { rotateRight = isPressed; }
-        else if (binding.equals("Forward")) { forward = isPressed; }
-        else if (binding.equals("Back")) { backward = isPressed; }
-        else if (binding.equals("Jump")) { playerControl.jump(); }
-    }
-    
-    private void initPlayer() {
-        // physics
-        BulletAppState bulletAppState = new BulletAppState();
-        this.stateManager.attach(bulletAppState);
-        RigidBodyControl scenePhy = new RigidBodyControl(0f);
-        this.rootNode.addControl(scenePhy);
-        bulletAppState.getPhysicsSpace().add(this.rootNode);
-        
-        // player
-        this.playerNode = new Node("Player");
-        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0,-9.81f, 0));
-        this.playerNode.setLocalTranslation(new Vector3f(0, 6, 0));
-        rootNode.attachChild(this.playerNode);
-        
-        this.playerControl = new BetterCharacterControl(1.5f, 4, 30f);
-        this.playerControl.setJumpForce(new Vector3f(0, 300, 0));
-        this.playerControl.setGravity(new Vector3f(0, -10, 0));
-        
-        this.playerNode.addControl(this.playerControl);
-        bulletAppState.getPhysicsSpace().add(this.playerControl);
-        
-        // remap controls
-        inputManager.addMapping("Forward", new KeyTrigger(KeyInput.KEY_W));
-        inputManager.addMapping("Back", new KeyTrigger(KeyInput.KEY_S));
-        inputManager.addMapping("Rotate Left", new KeyTrigger(KeyInput.KEY_A));
-        inputManager.addMapping("Rotate Right", new KeyTrigger(KeyInput.KEY_D));
-        inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
-        inputManager.addListener(this, "Rotate Left", "Rotate Right");
-        inputManager.addListener(this, "Forward", "Back", "Jump");
-    }
-    
-    private void createAndAnimateModels() {
-        loadMonkeyTriad();
-    }
-    
-    // loads array of monkeys into scene to animate default idle
-    private void loadMonkeyTriad() {
-        //Monkey Enemies
-        Node monkeyTriadNode = new Node("MonkeyTriad");
-        for (int i = 0; i < 3; i++) {
-            
-            LoadModel loadModel = new LoadModel(assetManager);
-            Spatial mymodel = loadModel.load("Textures/MonkeyEnemy/Jaime.j3o");
-            animateModel = new AnimateTriad(assetManager);
-            animateModel.createInstance(mymodel);
-            
-            mymodel.setLocalTranslation(i + 20, 0, 0);
-            mymodel.setLocalScale(1f);
-            mymodel.rotate(0, (float) Math.PI, 0);
-            
-            monkeyTriadNode.attachChild(mymodel);
-
-            // idle by default
-            animateModel.playAnimationAll("Idle", 1.0f);
+        switch (binding) {
+            case "Left" -> moveLeft = isPressed;
+            case "Right" -> moveRight = isPressed;
+            case "Forward" -> forward = isPressed;
+            case "Back" -> backward = isPressed;
+            case "Jump" -> playerControl.jump();
+            default -> {
+            }
         }
-        
-        rootNode.attachChild(monkeyTriadNode);
     } 
-    
-    // initialize all static geometry, and group them in common nodes (ground, buildings, cars)
-    private void initGeometry() {
-        Node ground = new Node("Ground");
-        ground.attachChild(createBox("floor", new Vector3f(0, -2, 0), new Vector3f(250, 1, 250), ColorRGBA.DarkGray));
-        ground.attachChild(createBox("sidewalk1", new Vector3f(-91, -1, -19), new Vector3f(80, .5f, 185), ColorRGBA.Gray));
-        ground.attachChild(createBox("sidewalk2", new Vector3f(128, -1, -19), new Vector3f(80, .5f, 185), ColorRGBA.Gray));
-        
-        Node buildings = new Node("Buildings");
-        buildings.attachChild(createBuilding("building1", new Vector3f(-74, 0, 75), new Vector3f(23, 36, 23), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building2", new Vector3f(-70, 0, 26), new Vector3f(26, 48, 26), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building3", new Vector3f(-98, 0, -13), new Vector3f(51, 34, 13), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building4", new Vector3f(-77, 0, -101), new Vector3f(42, 81, 42), ColorRGBA.LightGray));
-        buildings.attachChild(createBuilding("building5", new Vector3f(-92, 0, -146), new Vector3f(20, 23, 20), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building6", new Vector3f(95, 0, -94), new Vector3f(25, 64, 31), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building7", new Vector3f(123, 0, -6), new Vector3f(43, 115, 57), ColorRGBA.LightGray));
-        buildings.attachChild(createBuilding("building8", new Vector3f(134, 0, 64), new Vector3f(51, 34, 13), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building9", new Vector3f(113, 0, 100), new Vector3f(23, 36, 23), ColorRGBA.Brown));
-
-    
-        Node cars = new Node("Cars");
-        float rot = (float) (Math.PI / 2);
-        cars.attachChild(createCar("car1", new Vector3f(-5, 0, 0), new Vector3f(6, 6, 12), rot, ColorRGBA.Blue));
-        cars.attachChild(createCar("car1", new Vector3f(-5, 0, -37), new Vector3f(6, 6, 12), rot, ColorRGBA.Blue));
-        cars.attachChild(createCar("car1", new Vector3f(-5, 0, -74), new Vector3f(6, 6, 12), rot, ColorRGBA.Blue));
-        cars.attachChild(createCar("car1", new Vector3f(-5, 0, 116), new Vector3f(6, 6, 12), rot, ColorRGBA.Blue));
-        cars.attachChild(createCar("car1", new Vector3f(38, 0, -63), new Vector3f(6, 6, 12), -rot, ColorRGBA.Blue));
-        cars.attachChild(createCar("car1", new Vector3f(38, 0, 30), new Vector3f(6, 6, 12), -rot, ColorRGBA.Blue));
-        cars.attachChild(createCar("car1", new Vector3f(38, 0, 65), new Vector3f(6, 6, 12), -rot, ColorRGBA.Blue));
-        
-        Node coins = new Node("Coins");
-        coins.attachChild(createCoin("coin1", new Vector3f(-5, 3.5f, 0)));
-        coins.attachChild(createCoin("coin2", new Vector3f(-5, 3.5f, -37)));
-        coins.attachChild(createCoin("coin3", new Vector3f(-5, 3.5f, -74)));
-        coins.attachChild(createCoin("coin4", new Vector3f(-5, 3.5f, 116)));
-        coins.attachChild(createCoin("coin5", new Vector3f(38, 3.5f, -63)));
-        coins.attachChild(createCoin("coin6", new Vector3f(38, 3.5f, 30)));
-        coins.attachChild(createCoin("coin7", new Vector3f(38, 3.5f, 65)));
-        
-        rootNode.attachChild(ground);
-        rootNode.attachChild(buildings);
-        rootNode.attachChild(cars);
-        rootNode.attachChild(coins);
-    }
     
     // creates a box for GUI use (no shading)
     private Geometry createGuiBox(String name, Vector3f loc, Vector3f scale, ColorRGBA color) {
@@ -378,7 +468,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         Geometry geom = new Geometry(name, boxMesh);
         Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         mat.setColor("Diffuse", color);
-        mat.setColor("Ambient", color);
+        mat.setColor("Ambient", color.mult(0.3f));
 
         geom.setMaterial(mat);
         geom.setLocalTranslation(loc);
@@ -425,7 +515,6 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         LoadModel lm = new LoadModel(assetManager);
         Spatial building = lm.load("Textures/Buildings/ResBuilding.j3o");
         building.setLocalTranslation(loc);
-        
         return (Node) building;
     }
 
@@ -445,42 +534,20 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         
         return coin;
     }
-
-    
-    // adds general lighting (ambient, sun, some points)
-    private void setupLights() {
-        // add lighting
-        AmbientLight ambient = new AmbientLight();
-        ambient.setColor(ColorRGBA.White.mult(.1f));
-        rootNode.addLight(ambient);
-
-        DirectionalLight sun = new DirectionalLight();
-        sun.setDirection(new Vector3f(1,0,-2));
-        sun.setColor(ColorRGBA.White);
-        rootNode.addLight(sun);
-
-        // Point light (can be added near a character or object)
-        PointLight pointLight = new PointLight();
-        pointLight.setPosition(new Vector3f(38, 3, 30));  // Position the light in space
-        pointLight.setColor(ColorRGBA.Blue);  // Set light color (white here)
-        pointLight.setRadius(100f);  // Set the radius of the light
-        app.getRootNode().addLight(pointLight);  // Add point light to the root node
-        
-        PointLight pointLight2 = new PointLight();
-        pointLight.setPosition(new Vector3f(38, 3, -60));  // Position the light in space
-        pointLight.setColor(ColorRGBA.Blue);  // Set light color (white here)
-        pointLight.setRadius(100f);  // Set the radius of the light
-        app.getRootNode().addLight(pointLight2);  // Add point light to the root node
-    }
     
     // create red tint over screen
     private void you_died() {
-        float screenWidth = app.getContext().getSettings().getWidth();
-        float screenHeight = app.getContext().getSettings().getHeight();
-        Geometry red_tint = createGuiBox("red tint", new Vector3f(screenWidth / 2, screenHeight / 2 ,0), 
-                new Vector3f(screenWidth, screenHeight, 2), new ColorRGBA(1,0,0,0.2f));
+        Vector3f origin = new Vector3f(app_width / 2, app_height / 2, 0);  // Center position
+        Box screenBox = new Box(app_width / 2, app_height / 2, 1);  // Width, height, depth
+        Geometry redTint = new Geometry("RedTint", screenBox);
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", new ColorRGBA(1, 0, 0, 0.2f));  // Red with 20% opacity
+        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);  // Enable transparency
+        redTint.setMaterial(mat);
+        redTint.setLocalTranslation(origin);
+
         this.app.getGuiNode().detachAllChildren();
-        this.app.getGuiNode().attachChild(red_tint);
+        this.app.getGuiNode().attachChild(redTint);
         speed = 0;
     }
 }
