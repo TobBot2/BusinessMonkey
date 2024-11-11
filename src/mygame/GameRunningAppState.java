@@ -146,15 +146,15 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         ground.attachChild(createBox("sidewalk2", new Vector3f(128, -1, -19), new Vector3f(80, .5f, 185), ColorRGBA.Gray));
         
         Node buildings = new Node("Buildings");
-        buildings.attachChild(createBuilding("building1", new Vector3f(-74, 0, 75), new Vector3f(23, 36, 23), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building2", new Vector3f(-70, 0, 26), new Vector3f(26, 48, 26), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building3", new Vector3f(-98, 0, -13), new Vector3f(51, 34, 13), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building4", new Vector3f(-77, 0, -101), new Vector3f(42, 81, 42), ColorRGBA.LightGray));
-        buildings.attachChild(createBuilding("building5", new Vector3f(-92, 0, -146), new Vector3f(20, 23, 20), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building6", new Vector3f(95, 0, -94), new Vector3f(25, 64, 31), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building7", new Vector3f(123, 0, -6), new Vector3f(43, 115, 57), ColorRGBA.LightGray));
-        buildings.attachChild(createBuilding("building8", new Vector3f(134, 0, 64), new Vector3f(51, 34, 13), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building9", new Vector3f(113, 0, 100), new Vector3f(23, 36, 23), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building1", new Vector3f(-74, -20, 75), new Vector3f(23, 36, 23), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building2", new Vector3f(-70, -20, 26), new Vector3f(26, 48, 26), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building3", new Vector3f(-98, -20, -13), new Vector3f(51, 34, 13), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building4", new Vector3f(-77, -20, -101), new Vector3f(42, 81, 42), ColorRGBA.LightGray));
+        buildings.attachChild(createBuilding("building5", new Vector3f(-92, -20, -146), new Vector3f(20, 23, 20), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building6", new Vector3f(95, -20, -94), new Vector3f(25, 64, 31), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building7", new Vector3f(123, -20, -6), new Vector3f(43, 115, 57), ColorRGBA.LightGray));
+        buildings.attachChild(createBuilding("building8", new Vector3f(134, -20, 64), new Vector3f(51, 34, 13), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building9", new Vector3f(113, -20, 100), new Vector3f(23, 36, 23), ColorRGBA.Brown));
 
     
         Node cars = new Node("Cars");
@@ -299,6 +299,12 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         cameraUpdate(tpf);
         playerUpdate(tpf);
         healthUpdate();
+        
+        Vector3f position = playerNode.getWorldTranslation();
+        String formattedPosition = String.format("Player position: (%.2f, %.2f, %.2f)", 
+            position.x, position.y, position.z);
+        System.out.println(formattedPosition);
+        
     }
     
     // updates camera location and rotation each frame
@@ -428,7 +434,6 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         public void onAction(String name, boolean isPressed, float tpf) {
             if (name.equals(MAPPING_PICKUP) && !isPressed) {
                 pickup();
-                if (health > 0) health--;
             }
         }
     };
@@ -515,6 +520,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         LoadModel lm = new LoadModel(assetManager);
         Spatial building = lm.load("Textures/Buildings/ResBuilding.j3o");
         building.setLocalTranslation(loc);
+        building.setLocalScale(scale.normalize().mult(5));
         return (Node) building;
     }
 
