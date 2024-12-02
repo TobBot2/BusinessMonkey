@@ -1,0 +1,10 @@
+Material My Material : Common/MatDefs/Light/Lighting.j3md {
+     MaterialParameters {
+        Shininess :  1
+        DiffuseMap : "Textures/Vehicles/texture-palette.png"
+        ParallaxHeight :  0.05
+        BackfaceShadows :  false
+     }
+    AdditionalRenderState {
+    }
+}

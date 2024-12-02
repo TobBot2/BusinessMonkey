@@ -37,6 +37,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.control.CameraControl;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
+import java.util.Random;
 
 /**
  *
@@ -190,13 +191,12 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         bulletAppState.getPhysicsSpace().add(this.rootNode);
         
         this.playerNode = new Node("Player");
-        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0,-20f, 0));
+        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0,-100f, 0)); // GRAVITY
         this.playerNode.setLocalTranslation(new Vector3f(0, 6, 0));
         rootNode.attachChild(this.playerNode);
         
         this.playerControl = new BetterCharacterControl(1.5f, 4, 40f);
-        this.playerControl.setJumpForce(new Vector3f(0, 600, 0));
-        this.playerControl.setGravity(new Vector3f(0, -50f, 0));
+        this.playerControl.setJumpForce(new Vector3f(0, 1000, 0)); // JUMP FORCE
         
         this.playerNode.addControl(this.playerControl);
         bulletAppState.getPhysicsSpace().add(this.playerControl);
@@ -365,10 +365,13 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         ray.setDirection(cam.getDirection());
         rootNode.collideWith(ray, results);
         
+        System.out.println("shooting...");
+        
         if (results.size() > 0) {
             // if hit...
             // get parent because the geometry is a child of the car node that has the ExplodeCarControl class
-            Node target = results.getClosestCollision().getGeometry().getParent();
+            Node target = results.getClosestCollision().getGeometry().getParent().getParent()   ;
+            System.out.println("Hit target: " + target.getName());
             ExplodeCarControl explodeCarControl = target.getControl(ExplodeCarControl.class); 
             if (explodeCarControl != null) {
                 // if hit a car which can explode...
@@ -488,14 +491,18 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         Node car = new Node(name);
 
         Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        mat.setBoolean("UseMaterialColors", true);
-        mat.setColor("Diffuse", ColorRGBA.Blue);
-        mat.setColor("Ambient", ColorRGBA.Gray);
+        mat.setTexture("DiffuseMap", assetManager.loadTexture("Textures/Vehicles/texture-palette.png"));
+        
+        // load random model (car1, car2, car3)
+        Random rand = new Random();
+        int carIndex = rand.nextInt(3) + 1; // [0, 2] + 1 -> [1, 3]
         
         LoadModel lm = new LoadModel(assetManager);
-        Spatial myModel = lm.load("Textures/Vehicles/BlueCar.j3o");
+        Spatial myModel = lm.load("Textures/Vehicles/car" + carIndex + ".j3o");
         myModel.setLocalScale(Vector3f.UNIT_XYZ.mult(3));
         myModel.setMaterial(mat);
+        myModel.rotate(0, (float)Math.toRadians(90), 0);
+        myModel.move(0, 1, 0);
         
         SpotLight spot = new SpotLight();
         spot.setSpotRange(100);
