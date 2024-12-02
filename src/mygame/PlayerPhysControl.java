@@ -15,6 +15,8 @@ import com.jme3.scene.Spatial;
  * @author Trevor Black, Liam Finn & Samuel Muzac
  */
 public class PlayerPhysControl extends BetterCharacterControl implements PhysicsCollisionListener {
+    
+    public int coinsCollected = 0;
 
     public PlayerPhysControl(float f, int i, float f0) {
         super(f, i, f0);
@@ -50,6 +52,7 @@ public class PlayerPhysControl extends BetterCharacterControl implements Physics
             // Remove the coin from the scene
             coin.removeFromParent();
             System.out.println("Coin collected!");
+            coinsCollected++;
         }
     }
     

@@ -77,7 +77,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     
     // player variables
     private Node playerNode;
-    private BetterCharacterControl playerControl;
+    private PlayerPhysControl playerControl;
     
     private Geometry healthBar;
     private final float max_health = 10;
@@ -88,6 +88,10 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     private final Vector3f viewDirection = new Vector3f(0,0,1);
     private boolean moveLeft = false, moveRight = false, forward = false, backward = false;
     private float speed=30;
+    
+    private Spatial playerGun;
+    private float shootRate = .1f;
+    private float shootTimer = 0f;
 
     private int coinsCollected = 0;
     private AnimateTriad animateModel;
@@ -285,8 +289,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         this.playerNode.addControl(this.playerControl);
         this.bulletAppState.getPhysicsSpace().add(this.playerControl);
         this.bulletAppState.getPhysicsSpace().addCollisionListener((PhysicsCollisionListener) this.playerControl);
-        
-        
+
         // remap controls
         inputManager.addMapping("Forward", new KeyTrigger(KeyInput.KEY_W));
         inputManager.addMapping("Back", new KeyTrigger(KeyInput.KEY_S));
@@ -333,6 +336,25 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         camNode.setControlDir(CameraControl.ControlDirection.SpatialToCamera);
         camNode.setLocalTranslation(new Vector3f(0, 4f, 0)); // Set camera height relative to player
         playerNode.attachChild(camNode);
+        
+        // gun model
+        LoadModel lm = new LoadModel(assetManager);
+        playerGun = lm.load("Textures/Gun/m4.j3o");
+        playerGun.setLocalScale(Vector3f.UNIT_XYZ.mult(10));
+        Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        mat.setBoolean("UseMaterialColors", true);
+        mat.setColor("Diffuse", ColorRGBA.Yellow);
+        mat.setColor("Ambient", ColorRGBA.Gray);
+        
+        Node gunNode = new Node("Gun Node");
+        gunNode.attachChild(playerGun);
+        
+        gunNode.setMaterial(mat);
+//        gunNode.rotate(0, (float)Math.toRadians(-90), 0);
+        gunNode.move(-.5f, -.5f, 2);
+        gunNode.scale(1);
+        
+        this.camNode.attachChild(gunNode);
         
 //        float aspect = (float) cam.getWidth() / (float) cam.getHeight();
 //        // Define the field of view (FOV)
@@ -392,6 +414,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         playerUpdate(tpf);
         healthUpdate();
         
+        shootTimer -= tpf;
+        
         Vector3f position = playerNode.getWorldTranslation();
         String formattedPosition = String.format("Player position: (%.2f, %.2f, %.2f)", 
             position.x, position.y, position.z);
@@ -421,8 +445,6 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
                 fogFilter.setFogDensity(fogFilter.getFogDensity() - 0.05f);  // Adjust density as needed
             }
         }
-
-
     }
     
     // updates camera location and rotation each frame
@@ -478,6 +500,12 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     
     // attempt to shoot a car located at the center of the screen, damaging it.
     private void shoot() {
+        if (shootTimer > 0) {
+            return;
+        }
+        
+        shootTimer = shootRate;
+        
         CollisionResults results = new CollisionResults();
         
         // set ray to center of first person perspective and shoot ray
@@ -488,6 +516,27 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         if (results.size() > 0) {
             // if hit...
             // get parent because the geometry is a child of the car node that has the ExplodeCarControl class
+            
+            ParticleEmitter fireEmitter = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30);
+            Material fireMat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
+            rootNode.attachChild(fireEmitter);
+            fireMat.setTexture("Texture",assetManager.loadTexture("Effects/flame.png"));
+            fireEmitter.setMaterial(fireMat);
+            fireEmitter.setImagesX(2);
+            fireEmitter.setImagesY(2);
+            fireEmitter.setSelectRandomImage(true);
+            fireEmitter.setRandomAngle(true);
+            fireEmitter.setStartColor(new ColorRGBA(1f, 1f, .5f, 1f));
+            fireEmitter.setEndColor(new ColorRGBA(1f, 0f, 0f, 0f));
+            fireEmitter.setGravity(0,0,0);
+            fireEmitter.getParticleInfluencer().setVelocityVariation(0.2f);
+            fireEmitter.getParticleInfluencer().setInitialVelocity(new Vector3f(0,5f,0));
+            fireEmitter.setLowLife(0.5f);
+            fireEmitter.setHighLife(10f);
+            fireEmitter.setStartSize(2f);
+            fireEmitter.setEndSize(0.5f);
+            fireEmitter.setLocalTranslation(results.getClosestCollision().getContactPoint());
+            
             Node target = results.getClosestCollision().getGeometry().getParent();
             ExplodeCarControl explodeCarControl = target.getControl(ExplodeCarControl.class); 
             if (explodeCarControl != null) {
