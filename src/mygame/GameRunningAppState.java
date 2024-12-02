@@ -6,6 +6,7 @@ import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.collision.CollisionResults;
@@ -67,6 +68,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     private static final Cylinder cylinderMesh = new Cylinder(10, 10, 1, 1, true);
     private int app_width, app_height;
     
+    private BulletAppState bulletAppState;
+    
     // player variables
     private Node playerNode;
     private BetterCharacterControl playerControl;
@@ -102,10 +105,10 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         
 //        // key mappings
         initKeyMappings();
-//        //geometry
-        initGeometry();
 //        //player
         initPlayer();
+//        //geometry
+        initGeometry();
 //        //lighting
         setupLights();
         //models
@@ -184,22 +187,24 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     }
     
     private void initPlayer() {
-        BulletAppState bulletAppState = new BulletAppState();
-        this.stateManager.attach(bulletAppState);
+        this.bulletAppState = new BulletAppState();
+        this.stateManager.attach(this.bulletAppState);
         RigidBodyControl scenePhy = new RigidBodyControl(0f);
         this.rootNode.addControl(scenePhy);
-        bulletAppState.getPhysicsSpace().add(this.rootNode);
+        this.bulletAppState.getPhysicsSpace().add(this.rootNode);
         
         this.playerNode = new Node("Player");
-        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0,-100f, 0)); // GRAVITY
+        this.bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0,-100f, 0)); // GRAVITY
         this.playerNode.setLocalTranslation(new Vector3f(0, 6, 0));
         rootNode.attachChild(this.playerNode);
         
-        this.playerControl = new BetterCharacterControl(1.5f, 4, 40f);
+        this.playerControl = new PlayerPhysControl(1.5f, 4, 40f);
         this.playerControl.setJumpForce(new Vector3f(0, 1000, 0)); // JUMP FORCE
         
         this.playerNode.addControl(this.playerControl);
-        bulletAppState.getPhysicsSpace().add(this.playerControl);
+        this.bulletAppState.getPhysicsSpace().add(this.playerControl);
+        this.bulletAppState.getPhysicsSpace().addCollisionListener((PhysicsCollisionListener) this.playerControl);
+        
         
         // remap controls
         inputManager.addMapping("Forward", new KeyTrigger(KeyInput.KEY_W));
@@ -303,7 +308,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         Vector3f position = playerNode.getWorldTranslation();
         String formattedPosition = String.format("Player position: (%.2f, %.2f, %.2f)", 
             position.x, position.y, position.z);
-        System.out.println(formattedPosition);
+//        System.out.println(formattedPosition);
         
     }
     
@@ -472,8 +477,9 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     }
     
     // helper function to quickly create a box geometry with a given name, location, scale, and color. Uses phong shading
-    private Geometry createBox(String name, Vector3f loc, Vector3f scale, ColorRGBA color) {
-        Geometry geom = new Geometry(name, boxMesh);
+    private Node createBox(String name, Vector3f loc, Vector3f scale, ColorRGBA color) {
+        Node node = new Node(name);
+        Geometry geom = new Geometry(name + "_geom", boxMesh);
         Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         mat.setColor("Diffuse", color);
         mat.setColor("Ambient", color.mult(0.3f));
@@ -481,8 +487,14 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         geom.setMaterial(mat);
         geom.setLocalTranslation(loc);
         geom.setLocalScale(scale);
+        
+        node.attachChild(geom);
+        
+        RigidBodyControl boxControl = new RigidBodyControl(0f);
+        node.addControl(boxControl);
+        bulletAppState.getPhysicsSpace().add(boxControl);
                 
-        return geom;
+        return node;
     }
     
     // helper function to quickly create a car (similar to createBox, setting name, location, scale, color, with addition of rotation).
@@ -519,6 +531,10 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         // add explode controller
         car.addControl(new ExplodeCarControl());
         
+        RigidBodyControl coinControl = new RigidBodyControl(0f); // Static coin
+        car.addControl(coinControl);
+        bulletAppState.getPhysicsSpace().add(coinControl);
+        
         return car;
     }
     
@@ -544,6 +560,10 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         coin.setLocalScale(1, 1, .1f);
         
         coin.addControl(new CoinPickupControl());
+        
+        RigidBodyControl coinControl = new RigidBodyControl(0f);
+        coin.addControl(coinControl);
+        this.bulletAppState.getPhysicsSpace().add(coinControl);
         
         return coin;
     }
