@@ -5,11 +5,14 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
+import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.collision.CollisionResults;
+import com.jme3.effect.ParticleEmitter;
+import com.jme3.effect.ParticleMesh;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
@@ -30,6 +33,8 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.FogFilter;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.CameraNode;
 import com.jme3.scene.Geometry;
@@ -82,10 +87,28 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     private final Vector3f walkDirection = new Vector3f(0,0,0);
     private final Vector3f viewDirection = new Vector3f(0,0,1);
     private boolean moveLeft = false, moveRight = false, forward = false, backward = false;
-    private float speed=8;
+    private float speed=30;
 
     private int coinsCollected = 0;
     private AnimateTriad animateModel;
+    
+    //damage system
+    private BoundingBox playerBox;
+    private BoundingBox demoHurtBox;
+    private float fireDamageCooldown = 0.3f;  // Cooldown period in seconds (1 second)
+    private float timeSinceLastDamage = 0.0f;
+    
+    //fog
+    private FilterPostProcessor fpp;
+    private FogFilter fogFilter;
+    // Define the bounds where fog should be active
+    private final float fogStartX = -20f;
+    private final float fogEndX = -180f;
+    private final float fogStartY = -50f;
+    private final float fogEndY = 50f;
+    private final float fogStartZ = 110f;
+    private final float fogEndZ = -10f;
+
 
         @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -116,6 +139,61 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
 //        //camera
         initCamera();
         
+        
+        //sky
+        Spatial mySky = assetManager.loadModel("Scenes/mySky.j3o");
+        rootNode.attachChild(mySky);
+        
+        //fire
+        ParticleEmitter fireEmitter = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30);
+        Material fireMat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
+        rootNode.attachChild(fireEmitter);
+        fireMat.setTexture("Texture",assetManager.loadTexture("Effects/flame.png"));
+        fireEmitter.setMaterial(fireMat);
+        fireEmitter.setImagesX(2);
+        fireEmitter.setImagesY(2);
+        fireEmitter.setSelectRandomImage(true);
+        fireEmitter.setRandomAngle(true);
+        fireEmitter.setStartColor(new ColorRGBA(1f, 1f, .5f, 1f));
+        fireEmitter.setEndColor(new ColorRGBA(1f, 0f, 0f, 0f));
+        fireEmitter.setGravity(0,0,0);
+        fireEmitter.getParticleInfluencer().setVelocityVariation(0.2f);
+        fireEmitter.getParticleInfluencer().setInitialVelocity(new Vector3f(0,5f,0));
+        fireEmitter.setLowLife(0.5f);
+        fireEmitter.setHighLife(10f);
+        fireEmitter.setStartSize(25f);
+        fireEmitter.setEndSize(0.5f);
+        fireEmitter.setLocalTranslation(new Vector3f(-54f, 110f, -90f));
+        //fire with damage
+        ParticleEmitter fireEmitter2 = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30);
+        rootNode.attachChild(fireEmitter2);
+        fireMat.setTexture("Texture",assetManager.loadTexture("Effects/flame.png"));
+        fireEmitter2.setMaterial(fireMat);
+        fireEmitter2.setImagesX(2);
+        fireEmitter2.setImagesY(2);
+        fireEmitter2.setSelectRandomImage(true);
+        fireEmitter2.setRandomAngle(true);
+        fireEmitter2.setStartColor(new ColorRGBA(1f, 1f, .5f, 1f));
+        fireEmitter2.setEndColor(new ColorRGBA(1f, 0f, 0f, 0f));
+        fireEmitter2.setGravity(0,0,0);
+        fireEmitter2.getParticleInfluencer().setVelocityVariation(0.2f);
+        fireEmitter2.getParticleInfluencer().setInitialVelocity(new Vector3f(0,5f,0));
+        fireEmitter2.setLowLife(0.5f);
+        fireEmitter2.setHighLife(10f);
+        fireEmitter2.setStartSize(10f);
+        fireEmitter2.setEndSize(0.5f);
+        fireEmitter2.setLocalTranslation(new Vector3f(65f, 2f, 145f));
+        demoHurtBox = new BoundingBox(fireEmitter2.getWorldTranslation(), 4, 10, 4);
+        
+        fpp = new FilterPostProcessor(assetManager);
+        this.app.getViewPort().addProcessor(fpp);
+        //Initialize the FogFilter and add it to the FilterPostProcesor.
+        fogFilter = new FogFilter();
+        fogFilter.setFogDistance(155);
+        fogFilter.setFogDensity(2.0f);
+        fogFilter.setFogColor(new ColorRGBA(0.1f, 0.1f, 0.1f, 0.1f));
+        fpp.addFilter(fogFilter);
+
         // crosshair
         Geometry c = new Geometry("crosshair", boxMesh);
         Material crosshairMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -153,7 +231,9 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         buildings.attachChild(createBuilding("building1", new Vector3f(-74, -20, 75), new Vector3f(23, 36, 23), ColorRGBA.Brown));
         buildings.attachChild(createBuilding("building2", new Vector3f(-70, -20, 26), new Vector3f(26, 48, 26), ColorRGBA.Brown));
         buildings.attachChild(createBuilding("building3", new Vector3f(-98, -20, -13), new Vector3f(51, 34, 13), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building4", new Vector3f(-77, -20, -101), new Vector3f(42, 81, 42), ColorRGBA.LightGray));
+        buildings.attachChild(createBuilding("building1a", new Vector3f(-150, -20, 75), new Vector3f(40, 36, 26), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building2a", new Vector3f(-130, -20, 36), new Vector3f(29, 48, 21), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building3a", new Vector3f(-170, -20, 0), new Vector3f(51, 34, 13), ColorRGBA.Brown));
         buildings.attachChild(createBuilding("building5", new Vector3f(-92, -20, -146), new Vector3f(20, 23, 20), ColorRGBA.Brown));
         buildings.attachChild(createBuilding("building6", new Vector3f(95, -20, -94), new Vector3f(25, 64, 31), ColorRGBA.Brown));
         buildings.attachChild(createBuilding("building7", new Vector3f(123, -20, -6), new Vector3f(43, 115, 57), ColorRGBA.LightGray));
@@ -170,7 +250,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         cars.attachChild(createCar("car1", new Vector3f(38, 0, -63), new Vector3f(6, 6, 12), -rot, ColorRGBA.Blue));
         cars.attachChild(createCar("car1", new Vector3f(38, 0, 30), new Vector3f(6, 6, 12), -rot, ColorRGBA.Blue));
         cars.attachChild(createCar("car1", new Vector3f(38, 0, 65), new Vector3f(6, 6, 12), -rot, ColorRGBA.Blue));
-        
+        cars.attachChild(createCar("car1", new Vector3f(-133, 0, 58), new Vector3f(10, 10, 15), rot, ColorRGBA.Blue));
+
         Node coins = new Node("Coins");
         coins.attachChild(createCoin("coin1", new Vector3f(-5, 3.5f, 0)));
         coins.attachChild(createCoin("coin2", new Vector3f(-5, 3.5f, -37)));
@@ -213,6 +294,12 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_D));
         inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
         inputManager.addListener(this, "Forward", "Back", "Left", "Right", "Jump");
+        
+        //init playerbox
+        float playerWidth = 10f; // Example width, adjust as needed
+        float playerHeight = 20f; // Example height
+        float playerDepth = 10f; // Example depth
+        playerBox = new BoundingBox(playerNode.getWorldTranslation(), playerWidth / 2, playerHeight / 2, playerDepth / 2);
     }
     
     // adds general lighting (ambient, sun, some points)
@@ -310,6 +397,32 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             position.x, position.y, position.z);
 //        System.out.println(formattedPosition);
         
+        //fire damage
+        timeSinceLastDamage += tpf;
+        if (playerBox.intersects(demoHurtBox)) {
+            if (timeSinceLastDamage >= fireDamageCooldown) {
+                health--;
+                // Reset the timer
+                timeSinceLastDamage = 0.0f;
+            }
+        }
+        
+        //fog
+        boolean isInFogArea = position.x >= fogEndX && position.x <= fogStartX &&
+                       position.y >= fogStartY && position.y <= fogEndY &&
+                       position.z >= fogEndZ && position.z <= fogStartZ;
+        if (isInFogArea) {
+            // Player is in the fog area, enable fog with red tint
+            if (fogFilter.getFogDensity() < 4.0f) {
+                fogFilter.setFogDensity(fogFilter.getFogDensity() + 0.05f);  // Adjust density as needed
+            }
+        } else {
+            if (fogFilter.getFogDensity() > 0.1f) {
+                fogFilter.setFogDensity(fogFilter.getFogDensity() - 0.05f);  // Adjust density as needed
+            }
+        }
+
+
     }
     
     // updates camera location and rotation each frame
@@ -327,6 +440,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     
     // updates player location and rotation each frame
     private void playerUpdate(float tpf) {
+        //update position
+        playerBox.setCenter(playerNode.getWorldTranslation());
         // Get current forward and left vectors of the playerNode:
         Vector3f modelForwardDir = playerNode.getWorldRotation().mult(Vector3f.UNIT_Z);
         Vector3f modelLeftDir = playerNode.getWorldRotation().mult(Vector3f.UNIT_X);
@@ -370,13 +485,10 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         ray.setDirection(cam.getDirection());
         rootNode.collideWith(ray, results);
         
-        System.out.println("shooting...");
-        
         if (results.size() > 0) {
             // if hit...
             // get parent because the geometry is a child of the car node that has the ExplodeCarControl class
-            Node target = results.getClosestCollision().getGeometry().getParent().getParent()   ;
-            System.out.println("Hit target: " + target.getName());
+            Node target = results.getClosestCollision().getGeometry().getParent();
             ExplodeCarControl explodeCarControl = target.getControl(ExplodeCarControl.class); 
             if (explodeCarControl != null) {
                 // if hit a car which can explode...
