@@ -6,6 +6,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.system.AppSettings;
+import com.mygame.StartMenu;
 
 
 /**
@@ -41,8 +42,11 @@ public class Main extends SimpleApplication {
         inputManager.deleteMapping(INPUT_MAPPING_MEMORY); // Key_M
         
         // initialize main app state
-        GameRunningAppState gameRunningAppState = new GameRunningAppState();
-        stateManager.attach(gameRunningAppState);
+//        GameRunningAppState gameRunningAppState = new GameRunningAppState();
+//        stateManager.attach(gameRunningAppState);
+        
+        stateManager.attach(new StartMenu(this));  // Pass the Main instance
+        
         
         DirectionalLight sun = new DirectionalLight();
         sun.setDirection((new Vector3f(-0.5f, -0.5f, -0.5f)));
@@ -52,17 +56,18 @@ public class Main extends SimpleApplication {
         
         
     }
-    
-    
-     
-     
-
-
+   
 
     @Override
     public void simpleUpdate(float tpf) { }
 
     @Override
     public void simpleRender(RenderManager rm) { }
+    
+    public void startGame() {
+        GameRunningAppState gs = new GameRunningAppState();
+        getStateManager().attach(gs);
+        
+    }
 
 }

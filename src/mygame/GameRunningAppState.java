@@ -494,7 +494,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             healthBar.setLocalTranslation(hb_width + 40 - amountToShiftLeft, this.app.getContext().getSettings().getHeight() * 9 / 10, 0);
         } else if (health == 0){
             health = -1;
-            you_died();
+            endGame();
         }
     }
     
@@ -569,7 +569,15 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     }
     
     @Override
-    public void cleanup() {}
+    public void cleanup() {
+        super.cleanup();
+        app.getRootNode().detachAllChildren();
+        app.getGuiNode().detachAllChildren();
+        
+        speed = 1;
+        
+        
+    }
         
     // map input to shoot
     private AnalogListener analogListener = new AnalogListener() {
@@ -743,5 +751,13 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         this.app.getGuiNode().detachAllChildren();
         this.app.getGuiNode().attachChild(redTint);
         speed = 0;
+    }
+
+    private void endGame() {
+        you_died();
+        stateManager.detach(this);
+        EndMenu endMenu = new EndMenu();
+        this.app.getGuiNode().detachAllChildren();
+        stateManager.attach(endMenu);
     }
 }
