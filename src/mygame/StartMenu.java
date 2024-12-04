@@ -48,7 +48,12 @@ public class StartMenu extends AbstractAppState implements ActionListener{
         startText = new BitmapText(font, false);
         startText.setSize(font.getCharSet().getRenderedSize());
         startText.setText("Press Enter to Start"); // Set text
-        startText.setLocalTranslation(300, startText.getLineHeight() + 100, 0); // Position text
+//        startText.setLocalTranslation(300, startText.getLineHeight() + 100, 0); // Position text
+startText.setLocalTranslation(
+                app.getCamera().getWidth() / 2 - startText.getLineWidth() / 2,
+                app.getCamera().getHeight() / 2 + startText.getLineHeight(),
+                0
+        );
         guiNode.attachChild(startText);
         
         
