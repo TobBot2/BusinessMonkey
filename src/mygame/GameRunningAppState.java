@@ -44,6 +44,8 @@ import com.jme3.scene.control.CameraControl;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
 import java.util.Random;
+import com.jme3.audio.AudioNode;
+import com.jme3.audio.AudioData;
 
 /**
  *
@@ -215,6 +217,15 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         healthBar.setLocalTranslation(healthBarPosition);
         healthBar.setLocalScale(hb_width, hb_height, 2);
         this.app.getGuiNode().attachChild(healthBar);
+        
+        //Ambient Sound
+        AudioNode ambientSound = new AudioNode(assetManager, "Sounds/city-ambience.wav", AudioData.DataType.Stream);
+        ambientSound.setPositional(false); // Sound is everywhere, not localized
+        ambientSound.setLooping(true);    // Play continuously
+        ambientSound.setVolume(0.5f);     // Adjust volume
+        rootNode.attachChild(ambientSound);
+        ambientSound.play(); 
+        
     }
 
     private void initKeyMappings() {
@@ -494,7 +505,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             healthBar.setLocalTranslation(hb_width + 40 - amountToShiftLeft, this.app.getContext().getSettings().getHeight() * 9 / 10, 0);
         } else if (health == 0){
             health = -1;
-            endGame();
+            endGame_lose();
         }
     }
     
@@ -562,8 +573,12 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             if (coinPickupControl != null) {
                 // if hit a coin which can be picked up...
                 coinsCollected += coinPickupControl.pickup();
+         
                 
                 System.out.println("Picked up coin! " + coinsCollected);
+                if (coinsCollected >= 2) {
+                    endGame_win();
+                }
             }
         }
     }
@@ -728,7 +743,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         coin.setLocalTranslation(loc);
         coin.setLocalScale(1, 1, .1f);
         
-        coin.addControl(new CoinPickupControl());
+        coin.addControl(new CoinPickupControl(assetManager));
         
         RigidBodyControl coinControl = new RigidBodyControl(0f);
         coin.addControl(coinControl);
@@ -753,11 +768,22 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         speed = 0;
     }
 
-    private void endGame() {
+    private void endGame_lose() {
         you_died();
         stateManager.detach(this);
         EndMenu endMenu = new EndMenu();
         this.app.getGuiNode().detachAllChildren();
         stateManager.attach(endMenu);
     }
+    
+    private void endGame_win() {
+            //player wins, end game
+        stateManager.detach(this);
+        EndMenu endMenu = new EndMenu();
+        this.app.getGuiNode().detachAllChildren();
+        stateManager.attach(endMenu);
+        
+    }
+    
+    
 }

@@ -1,5 +1,8 @@
 package mygame;
 
+import com.jme3.asset.AssetManager;
+import com.jme3.audio.AudioData;
+import com.jme3.audio.AudioNode;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.control.AbstractControl;
@@ -13,8 +16,22 @@ import com.jme3.scene.control.AbstractControl;
 public class CoinPickupControl extends AbstractControl {
     
     int worth = 5;
+    private AudioNode coinPickupSound;
+    
+    public CoinPickupControl(AssetManager assetManager) {
+        // Load the coin pickup sound
+        coinPickupSound = new AudioNode(assetManager, "Sounds/coin_pickup.wav", AudioData.DataType.Buffer);
+        coinPickupSound.setPositional(false); // Non-positional since it's a UI-like sound
+        coinPickupSound.setLooping(false);    // Ensure it plays once per pickup
+        coinPickupSound.setVolume(1);        // Adjust volume if needed
+    }
 
     public int pickup() {
+        
+        if (coinPickupSound != null) {
+            coinPickupSound.playInstance();
+        }
+        
         spatial.removeFromParent();
                 
         return worth;
