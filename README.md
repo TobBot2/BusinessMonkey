@@ -77,3 +77,42 @@ Finally, physics has also been implemented. The player may move forward and back
 ![monkeys](image-1.png)
 
 ![dead](image-2.png)
+
+### Third Deliverable
+
+For the third deliverable, we introduced several enhancements to the game, focusing on both aesthetic and gameplay elements.
+
+Fire Effect with Particles and Hurtbox: 
+Using assets from the jMonkey Beginner’s Guide, we added a fire particle effect to certain areas of the game. This effect includes realistic flames and flickering, and we implemented a "hurtbox" so that when the player enters the fire area, their health decreases periodically. This mechanic uses a timer to inflict damage every second.
+
+Skybox: 
+We added a skybox generated from a night sky using an online 3D Space Skybox Generator. This creates an immersive environment always present around the player.
+
+Fog Effect: 
+We also added a fog system to add atmosphere in confined spaces. The effect dynamically activates when the player enters certain close-cornered areas and is disabled otherwise.
+
+Ambient Occlusion
+
+Shadows
+
+Sixth Effect
+
+## Member Contributions
+
+Liam
+Designed and coded the fire particle effect and hurtbox mechanic.
+Implemented the skybox and fog systems.
+
+Trevor
+
+
+
+Other Member(s)
+
+
+
+Collaborative Contributions
+All team members contributed to level design, resource acquisition, ideation, and debugging. Our collaborative process involved brainstorming sessions to conceptualize new features, bi-weekly development meetings to align progress, and pair programming sessions to resolve technical challenges efficiently.
+
+Acknowledgment
+We utilized assets and guidance from the jMonkey Beginner’s Guide, 3D Space Skybox Generator, and other online sources. Links to specific tools and resources are provided to credit these inspirations.
