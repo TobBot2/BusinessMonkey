@@ -128,6 +128,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     
     
     private Geometry redTint;
+    private AudioNode hitSound;
     
     
     
@@ -192,7 +193,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         fireEmitter.setEndSize(0.5f);
         fireEmitter.setLocalTranslation(new Vector3f(-54f, 110f, -90f));
         //fire with damage
-        ParticleEmitter fireEmitter2 = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30);
+        fireEmitter2 = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30);
         rootNode.attachChild(fireEmitter2);
         fireMat.setTexture("Texture",assetManager.loadTexture("Effects/flame.png"));
         fireEmitter2.setMaterial(fireMat);
@@ -215,8 +216,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
          //fire with damage - sound
 //        soundNode = new Node("SoundNode");
 //        soundNode.attachChild(fireEmitter2);
-//        fireNode = new AudioNode(assetManager, "Sounds/fire-sound.wav");
-//        fireNode.setPositional(true);
+//        fireNode = new AudioNode(assetManager, "Sounds/bee-flying-loop.wav");
+//        fireNode.setPositional(false);
 //        fireNode.setRefDistance(10f);  // Distance of 50% volume
 //        fireNode.setMaxDistance(1000f);
 //        fireNode.setLooping(true);
@@ -224,7 +225,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
 //        
 //        soundNode.attachChild(fireNode);
 //        rootNode.attachChild(soundNode);
-//        fireNode.play()
+//        fireNode.play();
         
         
         
@@ -255,13 +256,12 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         healthBar.setLocalScale(hb_width, hb_height, 2);
         this.app.getGuiNode().attachChild(healthBar);
         
-        //Ambient Sound
-        AudioNode ambientSound = new AudioNode(assetManager, "Sounds/city-ambience.wav", AudioData.DataType.Stream);
-        ambientSound.setPositional(false); // Sound is everywhere, not localized
-        ambientSound.setLooping(true);    // Play continuously
-        ambientSound.setVolume(0.5f);     // Adjust volume
-        rootNode.attachChild(ambientSound);
-        ambientSound.play(); 
+        //hit Audio
+        hitSound = new AudioNode(assetManager, "Sounds/ouch.wav", AudioData.DataType.Stream);
+        hitSound.setPositional(false); // Sound is everywhere, not localized
+        hitSound.setLooping(false);    // Play continuously
+        hitSound.setVolume(0.6f);     // Adjust volume
+        rootNode.attachChild(hitSound);        
         
     }
 
@@ -476,6 +476,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         if (playerBox.intersects(demoHurtBox)) {
             if (timeSinceLastDamage >= fireDamageCooldown) {
                 health--;
+                hitSound.play();
                 // Reset the timer
                 timeSinceLastDamage = 0.0f;
             }
@@ -484,7 +485,6 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
                //fire sound
 //        Vector3f emitterPosition = fireEmitter2.getWorldTranslation();
 //        soundNode.setLocalTranslation(emitterPosition);
-//        
         
         
         //fog
