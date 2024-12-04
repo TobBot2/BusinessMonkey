@@ -46,6 +46,10 @@ import com.jme3.scene.shape.Cylinder;
 import java.util.Random;
 import com.jme3.audio.AudioNode;
 import com.jme3.audio.AudioData;
+import com.jme3.audio.AudioSource;
+import com.jme3.font.BitmapText;
+import mygame.StartMenu;
+
 
 /**
  *
@@ -54,7 +58,7 @@ import com.jme3.audio.AudioData;
  * @author Trevor Black & Liam Finn & Samuel Muzac
  */
 public class GameRunningAppState extends AbstractAppState implements ActionListener{
-    // input/key mappings
+      // input/key mappings
     private final static Trigger TRIGGER_SHOOT = new MouseButtonTrigger(MouseInput.BUTTON_LEFT);
     private final static Trigger TRIGGER_PICKUP = new KeyTrigger(KeyInput.KEY_SPACE);
     private final static String MAPPING_SHOOT = "Shoot";
@@ -68,6 +72,12 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     private AssetManager assetManager;
     private AppStateManager stateManager;
     private InputManager inputManager;
+    private Main mainApp;
+    
+    private Node soundNode;
+    private AudioNode fireNode;
+    private ParticleEmitter fireEmitter2;
+
     
     // reused variables
     private final Ray ray = new Ray();
@@ -85,6 +95,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     private final float max_health = 10;
     private float health = max_health;
     private float hb_width, hb_height;
+    private final Vector3f startPosition = new Vector3f(0,6,0);
     
     private final Vector3f walkDirection = new Vector3f(0,0,0);
     private final Vector3f viewDirection = new Vector3f(0,0,1);
@@ -114,6 +125,16 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     private final float fogEndY = 50f;
     private final float fogStartZ = 110f;
     private final float fogEndZ = -10f;
+    
+    
+    private Geometry redTint;
+    
+    
+    
+    public GameRunningAppState(Main mainApp) {
+        this.mainApp = mainApp;
+    }
+
 
 
         @Override
@@ -190,6 +211,22 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         fireEmitter2.setEndSize(0.5f);
         fireEmitter2.setLocalTranslation(new Vector3f(65f, 2f, 145f));
         demoHurtBox = new BoundingBox(fireEmitter2.getWorldTranslation(), 4, 10, 4);
+        
+         //fire with damage - sound
+//        soundNode = new Node("SoundNode");
+//        soundNode.attachChild(fireEmitter2);
+//        fireNode = new AudioNode(assetManager, "Sounds/fire-sound.wav");
+//        fireNode.setPositional(true);
+//        fireNode.setRefDistance(10f);  // Distance of 50% volume
+//        fireNode.setMaxDistance(1000f);
+//        fireNode.setLooping(true);
+//        fireNode.setVolume(1.0f);
+//        
+//        soundNode.attachChild(fireNode);
+//        rootNode.attachChild(soundNode);
+//        fireNode.play()
+        
+        
         
         fpp = new FilterPostProcessor(assetManager);
         this.app.getViewPort().addProcessor(fpp);
@@ -444,6 +481,12 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             }
         }
         
+               //fire sound
+//        Vector3f emitterPosition = fireEmitter2.getWorldTranslation();
+//        soundNode.setLocalTranslation(emitterPosition);
+//        
+        
+        
         //fog
         boolean isInFogArea = position.x >= fogEndX && position.x <= fogStartX &&
                        position.y >= fogStartY && position.y <= fogEndY &&
@@ -460,7 +503,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         }
         
         if (PlayerPhysControl.coinsCollected > 5) {
-            endGame_win();
+            PlayerPhysControl.coinsCollected = 0;
+            endGame(true);        
         }
     }
     
@@ -511,7 +555,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             healthBar.setLocalTranslation(hb_width + 40 - amountToShiftLeft, this.app.getContext().getSettings().getHeight() * 9 / 10, 0);
         } else if (health == 0){
             health = -1;
-            endGame_lose();
+            endGame(false);
         }
     }
     
@@ -592,8 +636,13 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     @Override
     public void cleanup() {
         super.cleanup();
-        app.getRootNode().detachAllChildren();
-        app.getGuiNode().detachAllChildren();
+        if (this.app != null) { 
+            app.getRootNode().detachAllChildren();
+            app.getGuiNode().detachAllChildren();
+//            rootNode.detachChild(soundNode);
+//            fireNode.stop();
+        }
+
         
         speed = 1;
         
@@ -631,8 +680,16 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         @Override
         public void onAction(String name, boolean isPressed, float tpf) {
             if (name.equals(MAPPING_PICKUP) && !isPressed) {
-                pickup();
+//                pickup();
             }
+            if (name.equals("Restart") && isPressed) {
+                System.out.println("restarting the game");
+                stateManager.attach(new StartMenu(mainApp));
+                app.getGuiNode().detachAllChildren();
+                
+                
+            }
+
         }
     };
     
@@ -758,11 +815,11 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         return coin;
     }
     
-    // create red tint over screen
+     // create red tint over screen
     private void you_died() {
         Vector3f origin = new Vector3f(app_width / 2, app_height / 2, 0);  // Center position
         Box screenBox = new Box(app_width / 2, app_height / 2, 1);  // Width, height, depth
-        Geometry redTint = new Geometry("RedTint", screenBox);
+        redTint = new Geometry("RedTint", screenBox);
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", new ColorRGBA(1, 0, 0, 0.2f));  // Red with 20% opacity
         mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);  // Enable transparency
@@ -772,24 +829,44 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         this.app.getGuiNode().detachAllChildren();
         this.app.getGuiNode().attachChild(redTint);
         speed = 0;
-    }
-
-    private void endGame_lose() {
-        you_died();
-        stateManager.detach(this);
-        EndMenu endMenu = new EndMenu();
-        this.app.getGuiNode().detachAllChildren();
-        stateManager.attach(endMenu);
+        
+        BitmapText gameOverText = new BitmapText(assetManager.loadFont("Interface/Fonts/Default.fnt"), false);
+        gameOverText.setSize(40);
+        gameOverText.setText("Game Over! Press 'R' to restart");
+        gameOverText.setLocalTranslation(app_width / 2 - gameOverText.getLineWidth() / 2, app_height / 2, 0);
+        this.app.getGuiNode().attachChild(gameOverText);
+    
+    
     }
     
-    private void endGame_win() {
-            //player wins, end game
-        stateManager.detach(this);
-        EndMenu endMenu = new EndMenu();
+     // create green tint over screen
+    private void you_won() {
+        Vector3f origin = new Vector3f(app_width / 2, app_height / 2, 0);  // Center position
+        Box screenBox = new Box(app_width / 2, app_height / 2, 1);  // Width, height, depth
+        Geometry greenTint = new Geometry("GreenTint", screenBox);
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", new ColorRGBA(0, 1, 0, 0.2f));  // Red with 20% opacity
+        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);  // Enable transparency
+        greenTint.setMaterial(mat);
+        greenTint.setLocalTranslation(origin);
+
         this.app.getGuiNode().detachAllChildren();
-        stateManager.attach(endMenu);
-        
+        this.app.getGuiNode().attachChild(greenTint);
+        speed = 0;
     }
+    
+   
+    
+    public void endGame(boolean win) {
+        if (win) {
+            //green tint
+        } else {
+            //red tint
+        }
+        speed = 0;
+        mainApp.endGame(win);
+    }
+
     
     
 }
