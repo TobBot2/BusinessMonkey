@@ -184,12 +184,12 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         this.bulletAppState.getPhysicsSpace().add(this.rootNode);
         
         this.playerNode = new Node("Player");
-        this.bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0,-100f, 0)); // GRAVITY
+        this.bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0,-150f, 0)); // GRAVITY
         this.playerNode.setLocalTranslation(new Vector3f(0, 6, 0));
         rootNode.attachChild(this.playerNode);
         
         this.playerControl = new PlayerPhysControl(1.5f, 4, 40f);
-        this.playerControl.setJumpForce(new Vector3f(0, 1000, 0)); // JUMP FORCE
+        this.playerControl.setJumpForce(new Vector3f(0, 1500, 0)); // JUMP FORCE
         
         this.playerNode.addControl(this.playerControl);
         this.bulletAppState.getPhysicsSpace().add(this.playerControl);
@@ -308,8 +308,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             
             mymodel.addControl(new ExplodeCarControl());
             
-            mymodel.setLocalTranslation(i + 20, 0, 0);
-            mymodel.setLocalScale(1f);
+            mymodel.setLocalTranslation(10*i + 20, 0, 0);
+            mymodel.setLocalScale(8f);
             mymodel.rotate(0, (float) Math.PI, 0);
             
             monkeyTriadNode.attachChild(mymodel);
@@ -710,10 +710,40 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     
     // loads building model into scene at location, scale, and color
     private Node createBuilding(String name, Vector3f loc, Vector3f scale, ColorRGBA color) {
+        // Load the model
         Spatial building = assetManager.loadModel("Textures/Buildings/ResBuilding.j3o");
-        building.setLocalTranslation(loc);
-        building.setLocalScale(scale.normalize().mult(5));
-        return (Node) building;
+
+        // Ensure the building is a Node
+        Node buildingNode;
+        if (building instanceof Node) {
+            buildingNode = (Node) building;
+        } else {
+            // Wrap the Spatial in a Node if it's not already one
+            buildingNode = new Node(name);
+            buildingNode.attachChild(building);
+        }
+
+        // Apply transformations
+        buildingNode.setLocalTranslation(loc);
+        buildingNode.setLocalScale(scale.normalize().mult(5));
+
+        // Optionally apply color if the model supports it (e.g., via material)
+        if (building instanceof Geometry) {
+            Geometry geom = (Geometry) building;
+            Material mat = geom.getMaterial();
+            //mat.setColor("Color", color); // Ensure the material uses a color property
+            geom.setMaterial(mat);
+        } else {
+            for (Spatial child : buildingNode.getChildren()) {
+                if (child instanceof Geometry) {
+                    Geometry geom = (Geometry) child;
+                    Material mat = geom.getMaterial();
+                    //mat.setColor("Color", color);
+                    geom.setMaterial(mat);
+                }
+            }
+        }
+        return buildingNode;
     }
 
     // creates pickup-able coin at a given location with the given name
@@ -775,11 +805,11 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
 //    }
     
     public void endGame(boolean win) {
-        if (win) {
-            //green tint
-        } else {
-            //red tint
-        }
+//        if (win) {
+//            //green tint
+//        } else {
+//            //red tint
+//        }
         speed = 0;
         ambientSound.stop();
         mainApp.endGame(win);
