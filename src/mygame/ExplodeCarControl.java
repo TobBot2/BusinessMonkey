@@ -11,12 +11,13 @@ import com.jme3.scene.control.AbstractControl;
 /**
  *
  * Control for cars that will take damage and get destroyed after being depleted of health
+ * Inaccurate name now. It's been changed to kill the monkeys.
  * 
  * @author Trevor Black & Liam Finn & Samuel Muzac
  */
 public class ExplodeCarControl extends AbstractControl {
     
-    float health = 50;
+    float health = 1;
     
     // intensity of rotation on hit
     float rotateOnHitAmount = .2f;
@@ -26,7 +27,7 @@ public class ExplodeCarControl extends AbstractControl {
         health -= amount;        
         
         // rotate randomly on hit
-        spatial.rotate(randAroundZero(rotateOnHitAmount),randAroundZero(rotateOnHitAmount),randAroundZero(rotateOnHitAmount));
+//        spatial.rotate(randAroundZero(rotateOnHitAmount),randAroundZero(rotateOnHitAmount),randAroundZero(rotateOnHitAmount));
         
         // after being hit too many times, destroy self
         if (health <= 0) {

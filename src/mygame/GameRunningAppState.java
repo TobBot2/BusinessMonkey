@@ -92,7 +92,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     private float speed=30;
     
     private Spatial playerGun;
-    private float shootRate = .1f;
+    private float shootRate = .2f;
     private float shootTimer = 0f;
 
     private int coinsCollected = 0;
@@ -354,7 +354,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         playerGun.setLocalScale(Vector3f.UNIT_XYZ.mult(10));
         Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         mat.setBoolean("UseMaterialColors", true);
-        mat.setColor("Diffuse", ColorRGBA.Yellow);
+        mat.setColor("Diffuse", ColorRGBA.Gray);
         mat.setColor("Ambient", ColorRGBA.Gray);
         
         Node gunNode = new Node("Gun Node");
@@ -406,6 +406,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             animateModel = new AnimateTriad(assetManager);
             animateModel.createInstance(mymodel);
             
+            mymodel.addControl(new ExplodeCarControl());
+            
             mymodel.setLocalTranslation(i + 20, 0, 0);
             mymodel.setLocalScale(1f);
             mymodel.rotate(0, (float) Math.PI, 0);
@@ -455,6 +457,10 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             if (fogFilter.getFogDensity() > 0.1f) {
                 fogFilter.setFogDensity(fogFilter.getFogDensity() - 0.05f);  // Adjust density as needed
             }
+        }
+        
+        if (PlayerPhysControl.coinsCollected > 5) {
+            endGame_win();
         }
     }
     
@@ -526,7 +532,6 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         
         if (results.size() > 0) {
             // if hit...
-            // get parent because the geometry is a child of the car node that has the ExplodeCarControl class
             
             ParticleEmitter fireEmitter = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30);
             Material fireMat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
@@ -544,12 +549,13 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             fireEmitter.getParticleInfluencer().setInitialVelocity(new Vector3f(0,5f,0));
             fireEmitter.setLowLife(0.5f);
             fireEmitter.setHighLife(10f);
-            fireEmitter.setStartSize(2f);
+            fireEmitter.setStartSize(1f);
             fireEmitter.setEndSize(0.5f);
             fireEmitter.setLocalTranslation(results.getClosestCollision().getContactPoint());
             
-            Node target = results.getClosestCollision().getGeometry().getParent();
-            ExplodeCarControl explodeCarControl = target.getControl(ExplodeCarControl.class); 
+            // get parent because the geometry is a child of the car node that has the ExplodeCarControl class
+            Spatial target = results.getClosestCollision().getGeometry().getParent();
+            ExplodeCarControl explodeCarControl = target.getControl(ExplodeCarControl.class);
             if (explodeCarControl != null) {
                 // if hit a car which can explode...
                 explodeCarControl.damage(1f);
@@ -559,28 +565,28 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     
     // attempt to pick up a coin located at the center of the screen, and add its value to the player's coinsCollected
     private void pickup() {
-        CollisionResults results = new CollisionResults();
-        
-        // set ray to center of first person perspective and shoot ray
-        ray.setOrigin(cam.getLocation());
-        ray.setDirection(cam.getDirection());
-        rootNode.collideWith(ray, results);
-        
-        if (results.size() > 0) {
-            // if hit...
-            Geometry target = results.getClosestCollision().getGeometry();
-            CoinPickupControl coinPickupControl = target.getControl(CoinPickupControl.class); 
-            if (coinPickupControl != null) {
-                // if hit a coin which can be picked up...
-                coinsCollected += coinPickupControl.pickup();
-         
-                
-                System.out.println("Picked up coin! " + coinsCollected);
-                if (coinsCollected >= 2) {
-                    endGame_win();
-                }
-            }
-        }
+//        CollisionResults results = new CollisionResults();
+//        
+//        // set ray to center of first person perspective and shoot ray
+//        ray.setOrigin(cam.getLocation());
+//        ray.setDirection(cam.getDirection());
+//        rootNode.collideWith(ray, results);
+//        
+//        if (results.size() > 0) {
+//            // if hit...
+//            Geometry target = results.getClosestCollision().getGeometry();
+//            CoinPickupControl coinPickupControl = target.getControl(CoinPickupControl.class); 
+//            if (coinPickupControl != null) {
+//                // if hit a coin which can be picked up...
+//                coinsCollected += coinPickupControl.pickup();
+//         
+//                
+//                System.out.println("Picked up coin! " + coinsCollected);
+//                if (coinsCollected >= 2) {
+//                    endGame_win();
+//                }
+//            }
+//        }
     }
     
     @Override
@@ -713,7 +719,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         car.rotate(0, rot, 0);
         
         // add explode controller
-        car.addControl(new ExplodeCarControl());
+//        car.addControl(new ExplodeCarControl());
         
         RigidBodyControl coinControl = new RigidBodyControl(0f); // Static coin
         car.addControl(coinControl);
