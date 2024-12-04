@@ -100,6 +100,8 @@ Shadows
 
 Sixth Effect
 
+## Sound
+Though we did not get around to fully fleshing our game out with sound, we incorporated by giving a collect sound when the player picks up a coin, and will implement sounds for player movement, taking damage, and fire burning.
 
 ## Member Contributions
 
