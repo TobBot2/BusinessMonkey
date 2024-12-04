@@ -83,7 +83,7 @@ Finally, physics has also been implemented. The player may move forward and back
 For the third deliverable, we introduced several enhancements to the game, focusing on both aesthetic and gameplay elements.
 
 Fire Effect with Particles and Hurtbox: 
-Using assets from the jMonkey Beginner’s Guide, we added a fire particle effect to certain areas of the game. This effect includes realistic flames and flickering, and we implemented a "hurtbox" so that when the player enters the fire area, their health decreases periodically. This mechanic uses a timer to inflict damage every second.
+Using assets from the jMonkey Beginner’s Guide, we added a fire particle effect to certain areas of the game. This effect includes realistic flames and flickering, and we implemented a "hurtbox" so that when the player enters the fire area, their health decreases periodically. This mechanic uses a timer to inflict damage every second. We also have particles that appear when the player shoots a gun, which is a temporary placeholder for when the "bullet" interacts with the enemy.
 <img width="832" alt="Screenshot 2024-12-03 at 10 37 36 PM" src="https://github.com/user-attachments/assets/b6c8d222-d2db-402f-b545-66d64fc6e3ac">
 
 Skybox: 
@@ -94,10 +94,8 @@ Fog Effect:
 We also added a fog system to add atmosphere in confined spaces. The effect dynamically activates when the player enters certain close-cornered areas and is disabled otherwise.
 <img width="1104" alt="Screenshot 2024-12-03 at 10 37 55 PM" src="https://github.com/user-attachments/assets/44470434-0e04-46db-bd9b-f0c87e8ef8f2">
 
-Ambient Occlusion and Shadows have buggy implementations at this point, and bloom filter we couldn't get to in time.
-
 ## Sound
-Though we did not get around to fully fleshing our game out with sound, we incorporated some aspects by adding ambient sound and by giving a collect sound when the player picks up a coin, and will implement sounds for player movement, taking damage, and fire burning.
+Though we did not get around to fully fleshing our game out with sound, we incorporated some aspects by adding ambient sound and by giving a collect sound when the player picks up a coin. We also added sound for when player takes damage, and will implement sounds for player movement and localized fire burning.
 
 ## Member Contributions
 
@@ -107,16 +105,16 @@ Implemented the skybox and fog systems.
 README
 
 Trevor\
-Working on Enemy Monkeys
-Interactions between Coins and Cars
-BLoom Filter
+Working on Enemy Monkeys and Shooting the Gun.
+Interactions with Coins
+Helped fix Cars
 
 Sam\
-Sound work
-Game State Menu
+Sound Work
+Game State Menus and Transitions
 
 Collaborative Contributions\
 All members worked on level design, acquiring the resources for sounds, sprites, generating ideas for what to implement, and debugging the code.
 
 Acknowledgment\
-We utilized assets and guidance from the jMonkey Beginner’s Guide, 3D Space Skybox Generator, and other online sources. Links to specific tools and resources are provided to credit these inspirations.
+We utilized assets and guidance from the jMonkey Beginner’s Guide, 3D Space Skybox Generator, and other online sources.
