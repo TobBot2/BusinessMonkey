@@ -13,7 +13,6 @@ import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
-import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
@@ -23,10 +22,11 @@ import com.jme3.scene.Node;
 public class EndMenu extends AbstractAppState {
     private SimpleApplication app;
     private Node guiNode;
-    private boolean inital = false;
     private BitmapText endText;
     private AppStateManager stateManager;
-
+    private final Main mainApp;
+    
+    public EndMenu(Main mainApp) { this.mainApp = mainApp; }
 
     public void initialize(AppStateManager stateManager, SimpleApplication app) {
         super.initialize(stateManager, app);
@@ -37,28 +37,21 @@ public class EndMenu extends AbstractAppState {
         // Display the end menu
         if (guiNode != null) {
             setupEndMenu();
-            inital = true;
-
         }
         // Add keybinding for restarting the game
        app.getInputManager().addMapping("Restart", new KeyTrigger(KeyInput.KEY_R));
        app.getInputManager().addListener(actionListener, "Restart");
-
     }
 
     @Override
     public void cleanup() {
-        
         if (guiNode != null) {
             guiNode.detachAllChildren();
             // Remove the menu and keybindings when this state is detached
             app.getInputManager().deleteMapping("Restart");
             app.getInputManager().removeListener(actionListener);
-            inital = false;
-
         }
-        super.cleanup();
-        
+        super.cleanup(); 
     }
 
     private void setupEndMenu() {
@@ -77,23 +70,20 @@ public class EndMenu extends AbstractAppState {
                 0
         );
         guiNode.attachChild(endText);
-       app.getInputManager().addMapping("Restart", new KeyTrigger(KeyInput.KEY_R));
-       app.getInputManager().addListener(actionListener, "Restart");
-        
-        
+        app.getInputManager().addMapping("Restart", new KeyTrigger(KeyInput.KEY_R));
+        app.getInputManager().addListener(actionListener, "Restart");
     }
 
     private final ActionListener actionListener = new ActionListener() {
         @Override
         public void onAction(String name, boolean isPressed, float tpf) {
             if (!isPressed) return; // Only act on key release
-
             switch (name) {
-                case "Restart":
+                case "Restart" -> {
+                    app.getInputManager().deleteMapping("Restart");
                     restartGame();
-                    break;
-                case "Exit":
-                    app.stop();
+                }
+                case "Exit" -> app.stop();
             }
         }
     };
@@ -109,8 +99,8 @@ public class EndMenu extends AbstractAppState {
     }
 
     // Attach a fresh instance of the game state
-    GameRunningAppState newGameState = new GameRunningAppState();
+    GameRunningAppState newGameState = new GameRunningAppState(mainApp);
     stateManager.attach(newGameState);
-}
+    }
 
 }

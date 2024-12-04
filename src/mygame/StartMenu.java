@@ -15,7 +15,6 @@ import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.scene.Node;
-import mygame.Main;
 
 
 /**
@@ -27,13 +26,12 @@ public class StartMenu extends AbstractAppState implements ActionListener{
     private Node guiNode;
     private BitmapText startText;
     private boolean isMenuActive = true;
-    private Main mainApp;
+    private final Main mainApp;
     private AppStateManager stateManager;
     
     public StartMenu(Main mainApp) {
         this.mainApp = mainApp;
     }
-    
     
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -49,18 +47,16 @@ public class StartMenu extends AbstractAppState implements ActionListener{
         startText.setSize(font.getCharSet().getRenderedSize());
         startText.setText("Press Enter to Start"); // Set text
 //        startText.setLocalTranslation(300, startText.getLineHeight() + 100, 0); // Position text
-startText.setLocalTranslation(
+        startText.setLocalTranslation(
                 app.getCamera().getWidth() / 2 - startText.getLineWidth() / 2,
                 app.getCamera().getHeight() / 2 + startText.getLineHeight(),
                 0
         );
         guiNode.attachChild(startText);
         
-        
         InputManager inputManager = stateManager.getApplication().getInputManager();
         inputManager.addMapping("StartGame", new KeyTrigger(KeyInput.KEY_RETURN));
         inputManager.addListener(this, "StartGame");
-        
     }
     
     @Override
@@ -72,6 +68,7 @@ startText.setLocalTranslation(
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
         if (!isPressed && name.equals("StartGame")) {
+            stateManager.getApplication().getInputManager().deleteMapping("StartGame");
             System.out.println("Game started");
             isMenuActive = false;
             mainApp.startGame();
@@ -80,12 +77,5 @@ startText.setLocalTranslation(
     }
     
     @Override
-    public void update(float tpf) {
-        if (!isMenuActive) {
-            
-        }
-    }
-
-    
-    
+    public void update(float tpf) { }
 }

@@ -1,16 +1,9 @@
 package mygame;
 
-import com.jme3.app.SimpleApplication;
-import com.jme3.light.DirectionalLight;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
-import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Spatial;
-import com.jme3.system.AppSettings;
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.asset.AssetManager;
-import com.jme3.scene.Node;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -93,33 +86,3 @@ public class AnimateTriad {
         return triad;
     }
 }
-
-
-
-//    public static void main(String[] args) {
-//        AnimateModel app = new AnimateModel();
-//        
-        // set app settings
-//        AppSettings settings = new AppSettings(true);
-//        settings.setTitle("Business Monkey.");
-//        settings.setResolution(1600,1000);
-//        
-//        //app.setDisplayFps(false);
-//        //app.setDisplayStatView(false);
-//        app.setSettings(settings);
-//        app.setShowSettings(false);
-//        
-//        app.start();
-    
-
-//    @Override
-//    public void simpleInitApp() {
-//        player = (Node)
-//    }
-//
-//    @Override
-//    public void simpleUpdate(float tpf) { }
-//
-//    @Override
-//    public void simpleRender(RenderManager rm) { }
-//}

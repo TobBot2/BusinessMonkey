@@ -15,8 +15,8 @@ import com.jme3.scene.control.AbstractControl;
  */
 public class CoinPickupControl extends AbstractControl {
     
-    int worth = 5;
-    private AudioNode coinPickupSound;
+    final int worth = 1;
+    private final AudioNode coinPickupSound;
     
     public CoinPickupControl(AssetManager assetManager) {
         // Load the coin pickup sound
@@ -27,20 +27,14 @@ public class CoinPickupControl extends AbstractControl {
     }
 
     public int pickup() {
-        
-        if (coinPickupSound != null) {
-            coinPickupSound.playInstance();
-        }
-        
-        spatial.removeFromParent();
-                
+        if (coinPickupSound != null) { coinPickupSound.playInstance();}
+        spatial.removeFromParent();    
         return worth;
     }
     
     @Override
     protected void controlUpdate(float tpf) {
-        // spin coin
-        spatial.rotate(0, 0.05f, 0);
+        spatial.rotate(0, 0.05f, 0);  // spin coin
     }
 
     @Override
