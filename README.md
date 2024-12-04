@@ -94,11 +94,7 @@ Fog Effect:
 We also added a fog system to add atmosphere in confined spaces. The effect dynamically activates when the player enters certain close-cornered areas and is disabled otherwise.
 <img width="1104" alt="Screenshot 2024-12-03 at 10 37 55 PM" src="https://github.com/user-attachments/assets/44470434-0e04-46db-bd9b-f0c87e8ef8f2">
 
-Ambient Occlusion
-
-Shadows
-
-Sixth Effect
+Ambient Occlusion and Shadows have buggy implementations at this point, and bloom filter we couldn't get to in time.
 
 ## Sound
 Though we did not get around to fully fleshing our game out with sound, we incorporated some aspects by adding ambient sound and by giving a collect sound when the player picks up a coin, and will implement sounds for player movement, taking damage, and fire burning.
@@ -113,6 +109,7 @@ README
 Trevor\
 Working on Enemy Monkeys
 Interactions between Coins and Cars
+BLoom Filter
 
 Sam\
 Sound work
