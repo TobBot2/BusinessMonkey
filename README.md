@@ -116,7 +116,7 @@ Sound work
 Game State Menu
 
 Collaborative Contributions\
-All team members contributed to level design, resource acquisition, ideation, and debugging. Our collaborative process involved brainstorming sessions to conceptualize new features, bi-weekly development meetings to align progress, and pair programming sessions to resolve technical challenges efficiently.
+All members worked on level design, acquiring the resources for sounds, sprites, generating ideas for what to implement, and debugging the code.
 
 Acknowledgment\
 We utilized assets and guidance from the jMonkey Beginner’s Guide, 3D Space Skybox Generator, and other online sources. Links to specific tools and resources are provided to credit these inspirations.
