@@ -129,6 +129,13 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     private float opacity;
     private AudioNode hitSound1, hitSound2, hitSound3;
     
+    
+    //Camera constraints
+    private float minPitch = -FastMath.HALF_PI / 4; // Minimum pitch (look down)
+    private float maxPitch = FastMath.HALF_PI / 4;  // Maximum pitch (look up)
+    private float currentPitch = 0f;
+
+    
     public GameRunningAppState(Main mainApp) { this.mainApp = mainApp; }
 
     @Override
@@ -460,6 +467,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         rootNode.attachChild(hitSound2); 
         rootNode.attachChild(hitSound3); 
     }
+    
+    
         
     @Override
     public void update(float tpf) {
@@ -538,6 +547,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             endGame(false);
         }
     }
+ 
     
     private void playerTakeDamage() {
         health--;
@@ -614,13 +624,33 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         @Override
         public void onAnalog(String name, float intensity, float tpf) {
             switch (name) {
-                case MAPPING_SHOOT -> shoot();
-                case "MouseMoveLeft" -> playerNode.rotate(0, intensity, 0); // Rotate player left around Y-axis
-                case "MouseMoveRight" -> playerNode.rotate(0, -intensity, 0); // Rotate player right around Y-axis
-                case "MouseMoveUp" -> camNode.rotate(-intensity, 0, 0); // Tilt up
-                case "MouseMoveDown" -> camNode.rotate(intensity, 0, 0); // Tilt down
-                default -> {
-                }
+                case MAPPING_SHOOT: 
+                    shoot();
+                    break;
+                case "MouseMoveLeft":
+                    playerNode.rotate(0, intensity, 0); // Rotate player left around Y-axis
+                    break;
+
+                case "MouseMoveRight":
+                    playerNode.rotate(0, -intensity, 0); // Rotate player right around Y-axis
+                case "MouseMoveUp":
+                    
+                    float pitchUp = currentPitch - intensity;
+                    if (pitchUp >= minPitch) {
+                        camNode.rotate(-intensity, 0, 0);
+                        currentPitch = pitchUp;
+                    }
+                    break;
+                case "MouseMoveDown":
+                    float pitchDown = currentPitch + intensity;
+                    if (pitchDown <= maxPitch) {
+                        camNode.rotate(intensity, 0, 0);
+                        currentPitch = pitchDown;
+                    }
+                    break;
+                default: {
+                    
+                    }
             }
         }
     };
