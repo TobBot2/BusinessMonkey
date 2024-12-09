@@ -1,5 +1,6 @@
 package mygame;
 
+import com.bulletphysics.collision.shapes.CollisionShape;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
@@ -11,6 +12,7 @@ import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.collision.CollisionResults;
 import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
@@ -712,6 +714,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     private Node createBuilding(String name, Vector3f loc, Vector3f scale, ColorRGBA color) {
         // Load the model
         Spatial building = assetManager.loadModel("Textures/Buildings/ResBuilding.j3o");
+        
 
         // Ensure the building is a Node
         Node buildingNode;
@@ -743,6 +746,12 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
                 }
             }
         }
+        RigidBodyControl buildingControl = new RigidBodyControl(0f);
+        buildingNode.addControl(buildingControl);
+        this.bulletAppState.getPhysicsSpace().add(buildingControl);
+        
+        
+        
         return buildingNode;
     }
 
