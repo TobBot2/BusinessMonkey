@@ -17,9 +17,16 @@ import com.jme3.scene.Spatial;
 public class PlayerPhysControl extends BetterCharacterControl implements PhysicsCollisionListener {
     
     public static int coinsCollected = 0;
+    private PlayerHealth playerHealth;
+    
 
-    public PlayerPhysControl(float f, int i, float f0) {
+    public PlayerPhysControl(float f, int i, float f0, PlayerHealth playerHealth) {
         super(f, i, f0);
+        this.playerHealth = playerHealth;
+    }
+    
+    public int getCoins() {
+        return coinsCollected;
     }
     
     @Override
@@ -57,6 +64,19 @@ public class PlayerPhysControl extends BetterCharacterControl implements Physics
             
             coin.removeFromParent();
             System.out.println("Coin collected: " + coinsCollected);
+        } else if ("MonkeyTriad".equals(parentA) && "Player".equals(parentB) || "MonkeyTriad".equals(parentB) && "Player".equals(parentA)) {
+            //TODO: NOT WORKING
+            System.out.println("Node A: " + nodeA.getName());
+            System.out.println("Node B: " + nodeB.getName());
+
+            //player loses health 
+            if (playerHealth != null) {
+                playerHealth.takeDamage(2);
+                System.out.println("Player hit by enemy! Health: " + playerHealth.getHp());
+
+            }
+            
+            
         }
     }
     

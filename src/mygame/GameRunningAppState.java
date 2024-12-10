@@ -16,6 +16,7 @@ import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.collision.CollisionResults;
 import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
+import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
@@ -92,8 +93,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     
     //health bar
     private Geometry healthBar;
+    private PlayerHealth health;
     private final float max_health = 10;
-    private float health = max_health;
     private float hb_width, hb_height;
     
     //movement stats
@@ -106,7 +107,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     private float shootTimer = 0f;
 
     //coins collected
-    private int coinsCollected = 0;
+    private final int coinsToWin = 7;
     private AnimateTriad animateModel;
     
     //damage system
@@ -136,6 +137,16 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     private float currentPitch = 0f;
 
     
+    private Geometry sliderBar;
+    private Geometry sliderThumb;
+    private boolean isDragging = false;
+    private float sliderMinX = 200;
+    private float sliderMaxX = 600;
+    private float sliderValue = 0.0f;
+    private BitmapText positionText;
+
+    
+    
     public GameRunningAppState(Main mainApp) { this.mainApp = mainApp; }
 
     @Override
@@ -155,15 +166,19 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         hb_height = app_height / 20;
         
         initKeyMappings();// key mappings
-        initPlayer(); //player        
+        initPlayer(); //player   
         initGeometry(); //geometry
         setupLights(); //lighting
-        createAndAnimateModels(); //models
+        initEnemies(); //enimies
         initCamera(); //camera
         initUIElements(); //UI stuff 
         initFireElements(); //fire
         initFogElements(); //fog
         initSoundElements(); //sounds
+        
+//        initPositionText();
+//        setupKeyMappings();
+
         
 //        //fire with damage - sound
 //        soundNode = new Node("SoundNode");
@@ -179,6 +194,13 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
 //        rootNode.attachChild(soundNode);
 //        fireNode.play();
     }
+    
+    
+     
+     
+  
+     
+    
 
     private void initKeyMappings() {
         this.inputManager.addMapping(MAPPING_SHOOT, TRIGGER_SHOOT);
@@ -194,10 +216,14 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         
         this.playerNode = new Node("Player");
         this.bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0,-150f, 0)); // GRAVITY
-        this.playerNode.setLocalTranslation(new Vector3f(0, 6, 0));
+        Vector3f playerPos = new Vector3f(19.332f, -0.960f, 237.932f);
+        this.playerNode.setLocalTranslation(playerPos);
+        Vector3f target = new Vector3f(0,6,0);
+        Vector3f direction = target.subtract(playerPos).normalizeLocal();
+        this.playerNode.lookAt(target, Vector3f.UNIT_Y);
         rootNode.attachChild(this.playerNode);
         
-        this.playerControl = new PlayerPhysControl(1.5f, 4, 40f);
+        this.playerControl = new PlayerPhysControl(1.5f, 4, 40f, health);
         this.playerControl.setJumpForce(new Vector3f(0, 1500, 0)); // JUMP FORCE
         
         this.playerNode.addControl(this.playerControl);
@@ -217,6 +243,9 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         float playerHeight = 20f; // Example height
         float playerDepth = 10f; // Example depth
         playerBox = new BoundingBox(playerNode.getWorldTranslation(), playerWidth / 2, playerHeight / 2, playerDepth / 2);
+        
+        //initalize player health
+        this.health = new PlayerHealth(max_health, this.playerNode);
     }
     
     // initialize all static geometry, and group them in common nodes (ground, buildings, cars)
@@ -234,17 +263,17 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             
         //buildings
         Node buildings = new Node("Buildings");
-        buildings.attachChild(createBuilding("building1", new Vector3f(-74, -20, 75), new Vector3f(23, 36, 23), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building2", new Vector3f(-70, -20, 26), new Vector3f(26, 48, 26), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building3", new Vector3f(-98, -20, -13), new Vector3f(51, 34, 13), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building1a", new Vector3f(-150, -20, 75), new Vector3f(40, 36, 26), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building2a", new Vector3f(-130, -20, 36), new Vector3f(29, 48, 21), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building3a", new Vector3f(-170, -20, 0), new Vector3f(51, 34, 13), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building5", new Vector3f(-92, -20, -146), new Vector3f(20, 23, 20), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building6", new Vector3f(95, -20, -94), new Vector3f(25, 64, 31), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building7", new Vector3f(123, -20, -6), new Vector3f(43, 115, 57), ColorRGBA.LightGray));
-        buildings.attachChild(createBuilding("building8", new Vector3f(134, -20, 64), new Vector3f(51, 34, 13), ColorRGBA.Brown));
-        buildings.attachChild(createBuilding("building9", new Vector3f(113, -20, 100), new Vector3f(23, 36, 23), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building", new Vector3f(-74, -20, 75), new Vector3f(23, 36, 23), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building", new Vector3f(-70, -20, 26), new Vector3f(26, 48, 26), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building", new Vector3f(-98, -20, -13), new Vector3f(51, 34, 13), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building", new Vector3f(-150, -20, 75), new Vector3f(40, 36, 26), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building", new Vector3f(-130, -20, 36), new Vector3f(29, 48, 21), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building", new Vector3f(-170, -20, 0), new Vector3f(51, 34, 13), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building", new Vector3f(-92, -20, -146), new Vector3f(20, 23, 20), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building", new Vector3f(95, -20, -94), new Vector3f(25, 64, 31), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building", new Vector3f(123, -20, -6), new Vector3f(43, 115, 57), ColorRGBA.LightGray));
+        buildings.attachChild(createBuilding("building", new Vector3f(134, -20, 64), new Vector3f(51, 34, 13), ColorRGBA.Brown));
+        buildings.attachChild(createBuilding("building", new Vector3f(113, -20, 100), new Vector3f(23, 36, 23), ColorRGBA.Brown));
 
         //cars
         Node cars = new Node("Cars");
@@ -260,19 +289,33 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
 
         //coins
         Node coins = new Node("Coins");
-        coins.attachChild(createCoin("coin1", new Vector3f(-5, 3.5f, 0)));
-        coins.attachChild(createCoin("coin2", new Vector3f(-5, 3.5f, -37)));
-        coins.attachChild(createCoin("coin3", new Vector3f(-5, 3.5f, -74)));
-        coins.attachChild(createCoin("coin4", new Vector3f(-5, 3.5f, 116)));
-        coins.attachChild(createCoin("coin5", new Vector3f(38, 3.5f, -63)));
-        coins.attachChild(createCoin("coin6", new Vector3f(38, 3.5f, 30)));
-        coins.attachChild(createCoin("coin7", new Vector3f(38, 3.5f, 65)));
+        coins.attachChild(createCoin("coin1", new Vector3f(-5, 3.5f, 5)));
+        coins.attachChild(createCoin("coin2", new Vector3f(-5, 3.5f, -30)));
+        coins.attachChild(createCoin("coin3", new Vector3f(-5, 3.5f, -70)));
+        coins.attachChild(createCoin("coin4", new Vector3f(-5, 3.5f, 120)));
+        coins.attachChild(createCoin("coin5", new Vector3f(38, 3.5f, -60)));
+        coins.attachChild(createCoin("coin6", new Vector3f(38, 3.5f, 35)));
+        coins.attachChild(createCoin("coin7", new Vector3f(38, 3.5f, 60)));
+        coins.attachChild(createCoin("coin8", new Vector3f(38, 3.5f, 70)));
+        coins.attachChild(createCoin("coin9", new Vector3f(38, 3.5f, 90)));
+        coins.attachChild(createCoin("coin10", new Vector3f(38, 3.5f, 23)));
+        initCoinText();
+        
+        //Invisible Walls to prevent User from falling
+        Node wallNode = new Node("Wall");
+        wallNode.attachChild(createWall("wall", new Vector3f(-250, 0, 0), new Vector3f(10, 20, 250)));  // Left wall
+        wallNode.attachChild(createWall("wall", new Vector3f(250, 0, 0), new Vector3f(10, 20, 250)));   // Right wall
+        wallNode.attachChild(createWall("wall", new Vector3f(0, 0, -250), new Vector3f(250, 20, 10)));   // Front wall
+        wallNode.attachChild(createWall("wall", new Vector3f(0, 0, 250), new Vector3f(250, 20, 10)));    // Back wall
+
+        
         
         //attach all of the above to the scene
         rootNode.attachChild(ground);
         rootNode.attachChild(buildings);
         rootNode.attachChild(cars);
         rootNode.attachChild(coins);
+        rootNode.attachChild(wallNode);
     }
     
     // adds general lighting (ambient, sun, some points)
@@ -301,7 +344,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         app.getRootNode().addLight(pointLight2);  // Add point light to the root node
     }
     
-    private void createAndAnimateModels() {
+    private void initEnemies() {
         loadMonkeyTriad();
     }
     
@@ -315,19 +358,31 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             animateModel = new AnimateTriad(assetManager);
             animateModel.createInstance(mymodel);
             
-            mymodel.addControl(new ExplodeCarControl());
+            mymodel.addControl(new ExplodeCarControl(health, new Vector3f(0, 6, 0)));
             
             mymodel.setLocalTranslation(10*i + 20, 0, 0);
             mymodel.setLocalScale(8f);
             mymodel.rotate(0, (float) Math.PI, 0);
+
             
             monkeyTriadNode.attachChild(mymodel);
 
             // idle by default
             animateModel.playAnimationAll("Idle", 1.0f);
+            
+            //physics
+            RigidBodyControl enemyControl = new RigidBodyControl(1.0f);
+            mymodel.addControl(enemyControl);
+            this.bulletAppState.getPhysicsSpace().add(enemyControl);
+            
+            
+            
         }
         rootNode.attachChild(monkeyTriadNode);
     }
+    
+    
+    
     
     private void initCamera() {
         camNode = new CameraNode("CamNode", cam);
@@ -474,6 +529,10 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     public void update(float tpf) {
         playerUpdate(tpf);
         healthUpdate();
+        animateModel.setPlayerPosition(playerNode.getWorldTranslation());
+        updateCoinText();
+//        updateTextColorBasedOnDirection();
+
         
         //cooldown timers
         timeSinceLastDamage += tpf;
@@ -513,7 +572,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             }
         }
         //check if winConMet
-        if (PlayerPhysControl.coinsCollected > 5) {
+        if (PlayerPhysControl.coinsCollected >= 7) {
             PlayerPhysControl.coinsCollected = 0;
             endGame(true);        
         }
@@ -537,20 +596,23 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     }
     
     private void healthUpdate() {
-        if (health > 0) {
-            float healthPercentage = (float) health / max_health;
+        float currentHealth = health.getHp();
+        if (currentHealth > 0) {
+            float healthPercentage = (float) currentHealth / max_health;
             healthBar.setLocalScale(hb_width * healthPercentage, hb_height, 2);
-            float amountToShiftLeft = hb_width / max_health * (max_health - health);
+            float amountToShiftLeft = hb_width / max_health * (max_health - currentHealth);
             healthBar.setLocalTranslation(hb_width + 40 - amountToShiftLeft, this.app.getContext().getSettings().getHeight() * 9 / 10, 0);
-        } else if (health == 0){
-            health = -1;
+        } else if (currentHealth == 0){
+//            health = -1;
             endGame(false);
         }
     }
+    
  
     
     private void playerTakeDamage() {
-        health--;
+//        health--;
+        health.takeDamage(1);
         Random rand = new Random();
         int randInd = rand.nextInt(3) + 1;
         switch (randInd) {
@@ -652,6 +714,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
                     
                     }
             }
+           
         }
     };
     
@@ -688,6 +751,30 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         mat.setColor("Diffuse", color);
         mat.setColor("Ambient", color.mult(0.3f));
+        geom.setMaterial(mat);
+        geom.setLocalTranslation(loc);
+        geom.setLocalScale(scale);
+        node.attachChild(geom);
+        
+        RigidBodyControl boxControl = new RigidBodyControl(0f);
+        node.addControl(boxControl);
+        bulletAppState.getPhysicsSpace().add(boxControl);
+                
+        return node;
+    }
+    
+    private Node createWall(String name, Vector3f loc, Vector3f scale) {
+        ColorRGBA color = new ColorRGBA(0,0,0,0);
+        Node node = new Node(name);
+        Geometry geom = new Geometry(name + "_geom", boxMesh);
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", color);
+        
+        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        mat.getAdditionalRenderState().setDepthWrite(false);
+        
+        
+        
         geom.setMaterial(mat);
         geom.setLocalTranslation(loc);
         geom.setLocalScale(scale);
@@ -804,6 +891,51 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         
         return coin;
     }
+    
+    private void updateCoinText() {
+        int coinsCollected = playerControl.getCoins();
+        positionText.setText("Collected: " + coinsCollected + "/" + coinsToWin);
+      
+    }
+    
+    //TODO: Not important but change text of coins picked up display
+//    private void updateTextColorBasedOnDirection() {
+//        // Get the direction the player is facing
+//        Vector3f direction = this.playerNode.getWorldRotation().getRotationColumn(2);
+//        Vector3f position = this.playerNode.getWorldTranslation();
+//        Ray ray_face = new Ray();
+//        ray.setOrigin(position);
+//        ray.setDirection(direction);
+//        ray.setLimit(100f);
+//        CollisionResults results = new CollisionResults();
+//        this.rootNode.collideWith(ray_face, results);
+//        
+//        if (results.size() > 0) {
+//            // The ray hit something
+//            Spatial hitObject = results.getClosestCollision().getGeometry();
+//
+//            // If the hit object is a building (assumed to have a specific name or tag), set text to black
+//            if (hitObject.getName().contains("building")) {
+//                positionText.setColor(ColorRGBA.Black);
+//            } else {
+//                // If the player is looking at the sky or other dark areas, set text to white
+//                positionText.setColor(ColorRGBA.White);
+//            }
+//        }
+//    }
+    
+    private void initCoinText() {
+        BitmapFont font = assetManager.loadFont("Interface/Fonts/Default.fnt");
+        positionText = new BitmapText(font, false);
+        positionText.setSize(font.getCharSet().getRenderedSize());
+        positionText.setLocalTranslation(10, cam.getHeight() - 10, 0); // Top-left corner
+        positionText.setColor(ColorRGBA.Black);
+        this.app.getGuiNode().attachChild(positionText);
+
+        // Update the initial position text
+        updateCoinText();
+    }
+ 
     
 //    // create red tint over screen
 //    private void you_died() {
