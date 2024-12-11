@@ -60,9 +60,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     
     // input/key mappings
     private final static Trigger TRIGGER_SHOOT = new MouseButtonTrigger(MouseInput.BUTTON_LEFT);
-    //private final static Trigger TRIGGER_PICKUP = new KeyTrigger(KeyInput.KEY_SPACE);
     private final static String MAPPING_SHOOT = "Shoot";
-    //private final static String MAPPING_PICKUP = "Pickup";
     
     // application variables
     private SimpleApplication app;
@@ -228,7 +226,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         
         // initialize player physics/collision
         this.playerControl = new PlayerPhysControl(1.5f, 4, 40f, health);
-        this.playerControl.setJumpForce(new Vector3f(0, 1500, 0)); // JUMP FORCE
+        //this.playerControl.setJumpForce(new Vector3f(0, 1500, 0)); // JUMP FORCE now set in PlayerPhysControl
+
         
         this.playerNode.addControl(this.playerControl);
         this.bulletAppState.getPhysicsSpace().add(this.playerControl);
@@ -747,7 +746,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             case "Right" -> moveRight = isPressed;
             case "Forward" -> forward = isPressed;
             case "Back" -> backward = isPressed;
-            case "Jump" -> playerControl.jump();
+            case "Jump" -> playerControl.specialJump();
             default -> {
             }
         }

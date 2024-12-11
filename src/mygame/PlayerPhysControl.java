@@ -8,6 +8,7 @@ import com.jme3.bullet.collision.PhysicsCollisionEvent;
 import com.jme3.bullet.collision.PhysicsCollisionListener;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 
 /**
@@ -19,6 +20,9 @@ public class PlayerPhysControl extends BetterCharacterControl implements Physics
     public static int coinsCollected = 0;
     private PlayerHealth playerHealth;
     
+    //double jump
+    private int jumpCount = 0;
+    private int maxJumps = 2;
 
     public PlayerPhysControl(float f, int i, float f0, PlayerHealth playerHealth) {
         super(f, i, f0);
@@ -27,6 +31,15 @@ public class PlayerPhysControl extends BetterCharacterControl implements Physics
     
     public int getCoins() {
         return coinsCollected;
+    }
+    
+    public void specialJump() {
+        if (jumpCount < maxJumps) {
+            // Apply upward impulse for jump
+            jumpCount++;
+            
+            jump = true;
+        }
     }
     
     @Override
@@ -101,6 +114,11 @@ public class PlayerPhysControl extends BetterCharacterControl implements Physics
         } else {
 //            System.out.println("unhandled collision: " + nodeA.getName() + ", " + nodeB.getName());
         }
+        
+        if (nodeA.getName().equals("Player") || nodeB.getName().equals("Player")) {
+            jumpCount = 0;
+            
+            this.setJumpForce(event.getNormalWorldOnB().add(Vector3f.UNIT_Y.mult(2f)).normalize().mult(1500));
+        }
     }
-    
 }
