@@ -45,13 +45,13 @@ public class WinScreenState extends AbstractAppState implements ActionListener{
         
         guiNode = ((Main) app).getGuiNode();
         
-//        // Background
-//        Geometry background = new Geometry("Background", new Quad(app.getCamera().getWidth(), app.getCamera().getHeight()));
-//        Material bgMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-//        bgMaterial.setColor("Color", ColorRGBA.Green); // Change to any color you like
-//        background.setMaterial(bgMaterial);
-//        background.setLocalTranslation(0, 0, -1); // Position slightly behind GUI elements
-//        guiNode.attachChild(background);
+        // Background
+        Geometry background = new Geometry("Background", new Quad(app.getCamera().getWidth(), app.getCamera().getHeight()));
+        Material bgMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        bgMaterial.setColor("Color", ColorRGBA.Green); // Change to any color you like
+        background.setMaterial(bgMaterial);
+        background.setLocalTranslation(0, 0, -1); // Position slightly behind GUI elements
+        guiNode.attachChild(background);
         
         BitmapFont font = stateManager.getApplication().getAssetManager().loadFont("Interface/Fonts/Default.fnt");
         winText = new BitmapText(font, false);

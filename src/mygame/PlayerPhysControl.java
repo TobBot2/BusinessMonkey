@@ -29,6 +29,7 @@ public class PlayerPhysControl extends BetterCharacterControl implements Physics
         this.mas = mas;
     }
     
+    
     public int getCoins() {
         return coinsCollected;
     }
@@ -40,6 +41,10 @@ public class PlayerPhysControl extends BetterCharacterControl implements Physics
             
             jump = true;
         }
+    }
+    
+    public void endGame() {
+        this.coinsCollected = 0;
     }
     
     @Override
@@ -78,9 +83,7 @@ public class PlayerPhysControl extends BetterCharacterControl implements Physics
             coin.removeFromParent();
             System.out.println("Coin collected: " + coinsCollected);
         } else if ("MonkeyTriad".equals(parentA) && "Player".equals(nodeB.getName()) || "MonkeyTriad".equals(parentB) && "Player".equals(nodeA.getName())) {
-            System.out.println("Node A: " + nodeA.getName());
-            System.out.println("Node B: " + nodeB.getName());
-
+            
             //player loses health 
             mas.playerTakeDamage(2);
             System.out.println("Player hit by enemy! Health -2");
