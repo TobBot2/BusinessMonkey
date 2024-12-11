@@ -146,7 +146,8 @@ In the final days of development, we focused on enhancing the playability of the
 
 
 ## Download
-Dowload the game here 
+Dowload the game [here](https://raw.githubusercontent.com/TobBot2/BusinessMonkey/dist.zip)
+
 
 ## Future Work
 With more time we'd definitely add more levels with different map designs. The level design was a very tedious task which made it difficult to devout time to making multiple levels on top of our course load and other important tasks for the game. We'd also create power-ups and debuffs to acheive a more arcade-like game like we originally wanted to, to give the user an advantage or disadvantage along with a final boss type of level. 
