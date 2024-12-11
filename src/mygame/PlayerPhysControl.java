@@ -29,6 +29,7 @@ public class PlayerPhysControl extends BetterCharacterControl implements Physics
         this.mas = mas;
     }
     
+    
     public int getCoins() {
         return coinsCollected;
     }
@@ -40,6 +41,10 @@ public class PlayerPhysControl extends BetterCharacterControl implements Physics
             
             jump = true;
         }
+    }
+    
+    public void endGame() {
+        this.coinsCollected = 0;
     }
     
     @Override

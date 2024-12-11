@@ -1105,6 +1105,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     public void endGame(boolean win) {
         speed = 0;
         ambientSound.stop();
+        playerControl.endGame();
         playerControl.setEnabled(false);
         removeLights();
         removeAllFromRootNode();
