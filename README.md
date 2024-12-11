@@ -4,9 +4,11 @@
 
 ### Game Summary
 
-Abu never wanted to go apeshit. But when his business associate ran away with his jewels, he knew what he had to do. Your mission: Shoot your way through the rival triad group and track down the boss to get your jewels back!
+Abu never wanted to go apeshit. But when his business associate ran away with his coins, he knew what he had to do. Your mission: Shoot your way through the rival triad group and track down the boss to get your coins back! Along the way pickup some of the coins of yours he dropped.
 
-Fight your way through unique levels by shooting down waves of enemies and advancing toward their boss in this fast-paced first-person shooter. Utilize a variety of guns, temporary power-ups, and parkour-style manic-monkey movements to quickly take down enemies and maneuver the streets and buildings of Hong Kong.
+////Fight your way through unique levels by shooting down waves of enemies and advancing toward their boss in this fast-paced first-person shooter. Utilize a variety of guns, temporary power-ups, and parkour-style manic-monkey movements to quickly take down enemies and maneuver the streets and buildings of Hong Kong.
+
+Fight your way through the twists and turns of the city, avoiding the enemies and fires set by the traid group as you advance toward their boss in this fast-paced first-person shooter. Utilize a variety of guns,  and parkour-style manic-monkey movements to quickly take down enemies and maneuver the streets and buildings of Hong Kong.
 
 ### Genre
 
@@ -108,13 +110,22 @@ Trevor\
 Working on Enemy Monkeys and Shooting the Gun.
 Interactions with Coins
 Helped fix Cars
+Fixed enemy/player collision
 
 Sam\
 Sound Work
 Game State Menus and Transitions
+Limited Camera movement
 
 Collaborative Contributions\
-All members worked on level design, acquiring the resources for sounds, sprites, generating ideas for what to implement, and debugging the code.
+All members worked on level design, acquiring the resources for sounds, sprites, generating ideas for what to implement, and debugging the code. All members helped with the logic implementations such as the player's health, win/lose game scenarios, and updated the README at different deliverables.
 
 Acknowledgment\
 We utilized assets and guidance from the jMonkey Beginner’s Guide, 3D Space Skybox Generator, and other online sources.
+
+## Demo
+
+## Download
+
+## Future Work
+With more time we'd definitely add more levels with different map designs. The level design was a very tedious task which made it difficult to devout time to making multiple levels on top of our course load and other important tasks for the game. We'd also create power-ups and debuffs to acheive a more arcade-like game like we originally wanted to, to give the user an advantage or disadvantage along with a final boss type of level. 
