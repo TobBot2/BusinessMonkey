@@ -42,7 +42,8 @@ public class Main extends SimpleApplication {
         inputManager.addMapping("Quit", new KeyTrigger(KeyInput.KEY_ESCAPE));
         inputManager.addListener(actionListener, "Quit");
 
-                
+        setDisplayStatView(false);        
+        
         startMenu = new StartMenu(this);
         stateManager.attach(startMenu);  // Pass the Main instance
         

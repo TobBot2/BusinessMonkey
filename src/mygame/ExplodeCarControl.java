@@ -19,12 +19,10 @@ import com.jme3.scene.control.AbstractControl;
 public class ExplodeCarControl extends AbstractControl {
     
     float health = 1;
-    private Vector3f playerPosition;
-    private float speed = 2.0f; // Movement speed
-    private int attackDamage = 2;
-    private float attackCooldown = 2.0f; // Time between attacks
+    private final Vector3f playerPosition;
+    private final float attackCooldown = 2.0f; // Time between attacks
     private float attackTimer = 0;
-    private float phealth;
+    private final float phealth;
     
     public ExplodeCarControl(float pH, Vector3f position) {
         this.phealth = pH;
@@ -61,8 +59,8 @@ public class ExplodeCarControl extends AbstractControl {
     protected void controlUpdate(float tpf) {
         if (spatial != null) {
             // Move towards the player
-            Vector3f direction = playerPosition.subtract(spatial.getWorldTranslation()).normalize();
-            spatial.move(direction.mult(speed * tpf));
+//            Vector3f direction = playerPosition.subtract(spatial.getWorldTranslation()).normalize();
+//            spatial.move(direction.mult(speed * tpf));
 
             // Check if close enough to attack
             float distance = spatial.getWorldTranslation().distance(playerPosition);
