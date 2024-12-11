@@ -142,6 +142,8 @@ We utilized assets and guidance from the jMonkey Beginner’s Guide, 3D Space Sk
 In the final days of development, we focused on enhancing the playability of the game. While previous iterations added new features, there wasn’t yet a central level or clear objective for players to focus on. To address this, we created a basic city block level, populated it with enemy monkeys, and placed 10 coins throughout the environment to give players a concrete goal. Additionally, we refined the start menu and clarified the possible game end states, while also improving the "juiciness" factors mentioned earlier. With that, we are proud to present ... **Business Monkey**!
 
 ## Demo
+[![Watch the video](https://raw.githubusercontent.com/TobBot2/BusinessMonkey/thumbnail.jpg)](https://raw.githubusercontent.com/TobBot2/BusinessMonkey/main/ProjectDemo.mp4)
+
 
 ## Download
 
