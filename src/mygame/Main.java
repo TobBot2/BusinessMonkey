@@ -1,11 +1,9 @@
 package mygame;
 
 import com.jme3.app.SimpleApplication;
-import com.jme3.audio.AudioData;
-import com.jme3.audio.AudioNode;
-import com.jme3.light.DirectionalLight;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
+import com.jme3.input.KeyInput;
+import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.KeyTrigger;
 import com.jme3.renderer.RenderManager;
 import com.jme3.system.AppSettings;
 
@@ -27,7 +25,7 @@ public class Main extends SimpleApplication {
         // set app settings
         AppSettings settings = new AppSettings(true);
         settings.setTitle("Business Monkey.");
-        settings.setResolution(1600,1000);
+        settings.setResolution(1200,750);
         
         //app.setDisplayFps(false);
         //app.setDisplayStatView(false);
@@ -40,8 +38,10 @@ public class Main extends SimpleApplication {
     @Override
     public void simpleInitApp() {
         // remove debug key mappings
-        inputManager.deleteMapping(INPUT_MAPPING_CAMERA_POS); // Key_C
-        inputManager.deleteMapping(INPUT_MAPPING_MEMORY); // Key_M
+        inputManager.clearMappings();
+        inputManager.addMapping("Quit", new KeyTrigger(KeyInput.KEY_ESCAPE));
+        inputManager.addListener(actionListener, "Quit");
+
                 
         startMenu = new StartMenu(this);
         stateManager.attach(startMenu);  // Pass the Main instance
@@ -103,5 +103,15 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleRender(RenderManager rm) { }
+    
+    private final ActionListener actionListener = new ActionListener() {
+        @Override
+        public void onAction(String name, boolean isPressed, float tpf) {
+            if (name.equals("Quit") && isPressed) {
+                stop(); // Quit the application
+            }
+        }
+    };
+
 
 }

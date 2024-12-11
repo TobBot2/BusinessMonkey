@@ -18,15 +18,15 @@ import com.jme3.scene.Spatial;
 public class PlayerPhysControl extends BetterCharacterControl implements PhysicsCollisionListener {
     
     public static int coinsCollected = 0;
-    private PlayerHealth playerHealth;
+    private final GameRunningAppState mas;
     
     //double jump
     private int jumpCount = 0;
     private int maxJumps = 2;
 
-    public PlayerPhysControl(float f, int i, float f0, PlayerHealth playerHealth) {
+    public PlayerPhysControl(float f, int i, float f0, GameRunningAppState mas) {
         super(f, i, f0);
-        this.playerHealth = playerHealth;
+        this.mas = mas;
     }
     
     public int getCoins() {
@@ -82,11 +82,8 @@ public class PlayerPhysControl extends BetterCharacterControl implements Physics
             System.out.println("Node B: " + nodeB.getName());
 
             //player loses health 
-            if (playerHealth != null) {
-                playerHealth.takeDamage(2);
-                System.out.println("Player hit by enemy! Health: " + playerHealth.getHp());
-
-            }
+            mas.playerTakeDamage(2);
+            System.out.println("Player hit by enemy! Health -2");
             
         } else if ("MonkeyBall".equals(nodeA.getName()) || "MonkeyBall".equals(nodeB.getName())) {
             Spatial monkeyBall = "MonkeyBall".equals(nodeA.getName()) ? nodeA : nodeB;
@@ -106,10 +103,8 @@ public class PlayerPhysControl extends BetterCharacterControl implements Physics
             
             if (other.getName().equals("Player")) {
                 System.out.println("hit player...");
-                if (playerHealth != null) {
-                    playerHealth.takeDamage(2);
-                    System.out.println("took damage! Hp: " + playerHealth.getHp());
-                }
+                     mas.playerTakeDamage(2);
+                    System.out.println("took damage! Hp - 2");
             }
         } else {
 //            System.out.println("unhandled collision: " + nodeA.getName() + ", " + nodeB.getName());

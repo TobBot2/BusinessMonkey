@@ -12,23 +12,26 @@ import com.jme3.scene.Spatial;
  */
 public class PlayerHealth {
     private float hp;
-    private Spatial player;
+    private final Spatial player;
+    private final GameRunningAppState mas;
     
-    public PlayerHealth(float hp, Spatial spatial) {
+    public PlayerHealth(float hp, Spatial spatial, GameRunningAppState mastate) {
         this.hp = hp;
         this.player = spatial;
+        this.mas = mastate;
     }
     
     public float getHp() {
         return hp;
     }
     
-    public void takeDamage(float damage) {
-        hp -= damage;
-        if (hp <= 0) {
-            hp = 0;
-            onDeath();
-        }
+    public void takeDamage(int damage) {
+//        hp -= damage;
+        mas.playerTakeDamage(damage);
+//        if (hp <= 0) {
+//            hp = 0;
+//            onDeath();
+//        }
     }
     
     protected void onDeath() {

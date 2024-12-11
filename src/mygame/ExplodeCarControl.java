@@ -24,11 +24,10 @@ public class ExplodeCarControl extends AbstractControl {
     private int attackDamage = 2;
     private float attackCooldown = 2.0f; // Time between attacks
     private float attackTimer = 0;
+    private float phealth;
     
-    PlayerHealth playerHealth;
-    
-    public ExplodeCarControl(PlayerHealth pH, Vector3f position) {
-        this.playerHealth = pH;
+    public ExplodeCarControl(float pH, Vector3f position) {
+        this.phealth = pH;
         this.playerPosition = position;
     }
     
@@ -45,9 +44,8 @@ public class ExplodeCarControl extends AbstractControl {
 //        spatial.rotate(randAroundZero(rotateOnHitAmount),randAroundZero(rotateOnHitAmount),randAroundZero(rotateOnHitAmount));
         
         // after being hit too many times, destroy self
-        if (playerHealth.getHp() <= 0) {
-            playerHealth.onDeath();
-//            spatial.removeFromParent();
+        if (phealth <= 0) {
+            spatial.removeFromParent();
         }
         if (health <= 0) {
             System.out.println("Enemy defeated");
@@ -79,8 +77,6 @@ public class ExplodeCarControl extends AbstractControl {
     }
     
     private void attackPlayer() {
-        playerHealth.takeDamage(attackDamage);
-        System.out.println("Player takes " + attackDamage + " damage! HP: " + playerHealth.getHp());
     }
     
 
