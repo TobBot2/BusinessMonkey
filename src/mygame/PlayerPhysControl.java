@@ -64,8 +64,7 @@ public class PlayerPhysControl extends BetterCharacterControl implements Physics
             
             coin.removeFromParent();
             System.out.println("Coin collected: " + coinsCollected);
-        } else if ("MonkeyTriad".equals(parentA) && "Player".equals(parentB) || "MonkeyTriad".equals(parentB) && "Player".equals(parentA)) {
-            //TODO: NOT WORKING
+        } else if ("MonkeyTriad".equals(parentA) && "Player".equals(nodeB.getName()) || "MonkeyTriad".equals(parentB) && "Player".equals(nodeA.getName())) {
             System.out.println("Node A: " + nodeA.getName());
             System.out.println("Node B: " + nodeB.getName());
 
@@ -76,7 +75,31 @@ public class PlayerPhysControl extends BetterCharacterControl implements Physics
 
             }
             
+        } else if ("MonkeyBall".equals(nodeA.getName()) || "MonkeyBall".equals(nodeB.getName())) {
+            Spatial monkeyBall = "MonkeyBall".equals(nodeA.getName()) ? nodeA : nodeB;
+            Spatial other = "MonkeyBall".equals(nodeA.getName()) ? nodeB : nodeA;
             
+//            if (other.getName().equals("wall") || other.getName().equals("floor")) {
+//            }else {
+//                System.out.println("Monkeyball hit something: " + other.getName());
+//            }
+            
+            if (monkeyBall.getControl(RigidBodyControl.class) != null) {
+                RigidBodyControl ballPhys = monkeyBall.getControl(RigidBodyControl.class);
+                ballPhys.getPhysicsSpace().remove(ballPhys);
+                monkeyBall.removeControl(ballPhys);
+            }
+            monkeyBall.removeFromParent();
+            
+            if (other.getName().equals("Player")) {
+                System.out.println("hit player...");
+                if (playerHealth != null) {
+                    playerHealth.takeDamage(2);
+                    System.out.println("took damage! Hp: " + playerHealth.getHp());
+                }
+            }
+        } else {
+//            System.out.println("unhandled collision: " + nodeA.getName() + ", " + nodeB.getName());
         }
     }
     

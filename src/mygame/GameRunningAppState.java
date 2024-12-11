@@ -223,6 +223,10 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         this.playerNode.lookAt(target, Vector3f.UNIT_Y);
         rootNode.attachChild(this.playerNode);
         
+        //initalize player health
+        this.health = new PlayerHealth(max_health, this.playerNode);
+        
+        // initialize player physics/collision
         this.playerControl = new PlayerPhysControl(1.5f, 4, 40f, health);
         this.playerControl.setJumpForce(new Vector3f(0, 1500, 0)); // JUMP FORCE
         
@@ -244,8 +248,6 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         float playerDepth = 10f; // Example depth
         playerBox = new BoundingBox(playerNode.getWorldTranslation(), playerWidth / 2, playerHeight / 2, playerDepth / 2);
         
-        //initalize player health
-        this.health = new PlayerHealth(max_health, this.playerNode);
     }
     
     // initialize all static geometry, and group them in common nodes (ground, buildings, cars)
@@ -375,7 +377,9 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             mymodel.addControl(enemyControl);
             this.bulletAppState.getPhysicsSpace().add(enemyControl);
             
-            
+            // monkey shooting
+            MonkeyAi ai = new MonkeyAi(playerNode, this.bulletAppState, assetManager, rootNode);
+            mymodel.addControl(ai);
             
         }
         rootNode.attachChild(monkeyTriadNode);
