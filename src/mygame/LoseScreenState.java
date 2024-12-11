@@ -39,15 +39,18 @@ public class LoseScreenState extends AbstractAppState implements ActionListener{
         super.initialize(stateManager, app);
         this.stateManager = stateManager;
         
-//        // Background
-//        Geometry background = new Geometry("Background", new Quad(app.getCamera().getWidth(), app.getCamera().getHeight()));
-//        Material bgMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-//        bgMaterial.setColor("Color", ColorRGBA.Red); // Change to any color you like
-//        background.setMaterial(bgMaterial);
-//        background.setLocalTranslation(0, 0, -1); // Position slightly behind GUI elements
-//        guiNode.attachChild(background);
-//        
         guiNode = ((Main) app).getGuiNode();
+        
+        
+        
+        // Background
+        Geometry background = new Geometry("Background", new Quad(app.getCamera().getWidth(), app.getCamera().getHeight()));
+        Material bgMaterial = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        bgMaterial.setColor("Color", ColorRGBA.Red); // Change to any color you like
+        background.setMaterial(bgMaterial);
+        background.setLocalTranslation(0, 0, -1); // Position slightly behind GUI elements
+        guiNode.attachChild(background);
+        
         
         BitmapFont font = stateManager.getApplication().getAssetManager().loadFont("Interface/Fonts/Default.fnt");
         loseText = new BitmapText(font, false);

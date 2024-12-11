@@ -155,7 +155,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
 //    private float sliderValue = 0.0f;
     private BitmapText positionText;
     final int SHADOWMAP_SIZE=2048;
-    
+
     public GameRunningAppState(Main mainApp) { this.mainApp = mainApp; }
 
     @Override
@@ -315,21 +315,21 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         initCoinText();
         
 //        //Invisible Walls to prevent User from falling
-//        Node wallNode = new Node("Wall");
-//        wallNode.attachChild(createWall("wall", new Vector3f(-250, 0, 0), new Vector3f(10, 20, 250)));  // Left wall
-//        wallNode.attachChild(createWall("wall", new Vector3f(250, 0, 0), new Vector3f(10, 20, 250)));   // Right wall
-//        wallNode.attachChild(createWall("wall", new Vector3f(0, 0, -250), new Vector3f(250, 20, 10)));   // Front wall
-//        wallNode.attachChild(createWall("wall", new Vector3f(0, 0, 250), new Vector3f(250, 20, 10)));    // Back wall
-//        
+        Node wallNode = new Node("Wall");
+        wallNode.attachChild(createWall("wall", new Vector3f(-300, 0, 0), new Vector3f(10, 20, 250)));  // Left wall
+        wallNode.attachChild(createWall("wall", new Vector3f(300, 0, 0), new Vector3f(10, 20, 250)));   // Right wall
+        wallNode.attachChild(createWall("wall", new Vector3f(0, 0, -300), new Vector3f(250, 20, 10)));   // Front wall
+        wallNode.attachChild(createWall("wall", new Vector3f(0, 0, 300), new Vector3f(250, 20, 10)));    // Back wall
+       
+        
 //        //attach all of the above to the scene
 
-        //set shadows 
         rootNode.attachChild(ground);
         rootNode.attachChild(boxes);
         rootNode.attachChild(buildings);
         rootNode.attachChild(cars);
         rootNode.attachChild(coins);
-//        rootNode.attachChild(wallNode);
+        rootNode.attachChild(wallNode);
     }
     
     // adds general lighting (ambient, sun, some points)
@@ -551,13 +551,15 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         gunNode.move(-.5f, -.5f, 1);
         gunNode.scale(1);
         this.camNode.attachChild(gunNode);
-
+        
+        
         inputManager.addMapping("MouseMoveLeft", new MouseAxisTrigger(MouseInput.AXIS_X, true));
         inputManager.addMapping("MouseMoveRight", new MouseAxisTrigger(MouseInput.AXIS_X, false));
         inputManager.addMapping("MouseMoveUp", new MouseAxisTrigger(MouseInput.AXIS_Y, false));
         inputManager.addMapping("MouseMoveDown", new MouseAxisTrigger(MouseInput.AXIS_Y, true));
         inputManager.addListener(analogListener, "MouseMoveLeft", "MouseMoveRight", "MouseMoveUp", "MouseMoveDown");
     }
+    
     
     private void initUIElements() {
         // crosshair
@@ -753,6 +755,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         }
     }
     
+   
+    
     public void playerTakeDamage(int amountOfDamage) {
         health -= amountOfDamage;
         Random rand = new Random();
@@ -921,27 +925,27 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         return node;
     }
     
-//    private Node createWall(String name, Vector3f loc, Vector3f scale) {
-//        ColorRGBA color = new ColorRGBA(0,0,0,0);
-//        Node node = new Node(name);
-//        Geometry geom = new Geometry(name + "_geom", boxMesh);
-//        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-//        mat.setColor("Color", color);
-//        
-//        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-//        mat.getAdditionalRenderState().setDepthWrite(false);
-//        
-//        geom.setMaterial(mat);
-//        geom.setLocalTranslation(loc);
-//        geom.setLocalScale(scale);
-//        node.attachChild(geom);
-//        
-//        RigidBodyControl boxControl = new RigidBodyControl(0f);
-//        node.addControl(boxControl);
-//        bulletAppState.getPhysicsSpace().add(boxControl);
-//                
-//        return node;
-//    }
+    private Node createWall(String name, Vector3f loc, Vector3f scale) {
+        ColorRGBA color = new ColorRGBA(0,0,0,0);
+        Node node = new Node(name);
+        Geometry geom = new Geometry(name + "_geom", boxMesh);
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", color);
+        
+        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        mat.getAdditionalRenderState().setDepthWrite(false);
+        
+        geom.setMaterial(mat);
+        geom.setLocalTranslation(loc);
+        geom.setLocalScale(scale);
+        node.attachChild(geom);
+        
+        RigidBodyControl boxControl = new RigidBodyControl(0f);
+        node.addControl(boxControl);
+        bulletAppState.getPhysicsSpace().add(boxControl);
+                
+        return node;
+    }
     
     // helper function to quickly create a car (similar to createBox, setting name, location, scale, color, with addition of rotation).
     // The scale determines the size of the main body of the car
