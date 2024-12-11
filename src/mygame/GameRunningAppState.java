@@ -47,7 +47,17 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.control.CameraControl;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
+import com.jme3.shadow.DirectionalLightShadowRenderer;
 import java.util.Random;
+import com.jme3.app.SimpleApplication;
+import com.jme3.light.DirectionalLight;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.renderer.ViewPort;
+import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.shadow.DirectionalLightShadowFilter;
+import com.jme3.shadow.PointLightShadowRenderer;
+
+
 
 /**
  *
@@ -70,6 +80,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     private AppStateManager stateManager;
     private InputManager inputManager;
     private Main mainApp;
+    private ViewPort viewPort;
     
     //Sound Nodes
     //private Node soundNode;
@@ -135,6 +146,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
 //    private float sliderMaxX = 600;
 //    private float sliderValue = 0.0f;
     private BitmapText positionText;
+    final int SHADOWMAP_SIZE=1024;
+
 
     
     
@@ -151,6 +164,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         this.assetManager = this.app.getAssetManager();
         this.stateManager = this.app.getStateManager();
         this.inputManager = this.app.getInputManager();
+        this.viewPort = this.app.getViewPort();
         app_width = this.app.getContext().getSettings().getWidth();
         app_height = this.app.getContext().getSettings().getHeight();
         hb_width = app_width / 8;
@@ -321,6 +335,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
 //        wallNode.attachChild(createWall("wall", new Vector3f(0, 0, 250), new Vector3f(250, 20, 10)));    // Back wall
 //        
 //        //attach all of the above to the scene
+
+        //set shadows 
         rootNode.attachChild(ground);
         rootNode.attachChild(boxes);
         rootNode.attachChild(buildings);
@@ -340,6 +356,19 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         sun.setDirection(new Vector3f(-1,-1,-1).normalizeLocal());
         sun.setColor(ColorRGBA.White.mult(0.3f));
         rootNode.addLight(sun);
+        
+        //Shadows
+//        DirectionalLightShadowRenderer dlsr = new DirectionalLightShadowRenderer(this.assetManager, SHADOWMAP_SIZE, 3);
+//        dlsr.setLight(sun);
+//        this.viewPort.addProcessor(dlsr);
+//        
+//        
+//        DirectionalLightShadowFilter dlsf = new DirectionalLightShadowFilter(assetManager, SHADOWMAP_SIZE, 3);
+//        dlsf.setLight(sun);
+//        dlsf.setEnabled(true);
+//        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+//        fpp.addFilter(dlsf);
+//        viewPort.addProcessor(fpp);
 
         // Point light (can be added near a character or object)
         PointLight pointLight = new PointLight();
@@ -359,6 +388,21 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         pointLight3.setColor(ColorRGBA.Red.mult(10.0f));  // Set light color (white here)
         pointLight3.setRadius(100);  // Set the radius of the light
         app.getRootNode().addLight(pointLight3);  // Add point light to the root node
+        
+        
+        //shadws for 3 point lights
+        int shadowMapSize = 2048; // Adjust for quality
+        PointLightShadowRenderer pointShadowRenderer = new PointLightShadowRenderer(assetManager, shadowMapSize);
+        pointShadowRenderer.setLight(pointLight);  // Assign to first light
+        viewPort.addProcessor(pointShadowRenderer);
+        
+        PointLightShadowRenderer pointShadowRenderer2 = new PointLightShadowRenderer(assetManager, shadowMapSize);
+        pointShadowRenderer2.setLight(pointLight2);  // Assign to first light
+        viewPort.addProcessor(pointShadowRenderer2);
+
+        PointLightShadowRenderer pointShadowRenderer3 = new PointLightShadowRenderer(assetManager, shadowMapSize);
+        pointShadowRenderer3.setLight(pointLight3);  // Assign to first light
+        viewPort.addProcessor(pointShadowRenderer3);
     }
     
     private void initEnemies() {
@@ -423,7 +467,9 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
 
         // monkey shooting
         MonkeyAi ai = new MonkeyAi(playerNode, this.bulletAppState, assetManager, rootNode);
-        mymodel.addControl(ai);           
+        mymodel.addControl(ai);     
+        
+        //shadow mode
         rootNode.attachChild(monkeyTriadNode);
     }
     
@@ -463,7 +509,9 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
 
         // monkey shooting
         MonkeyAi ai = new MonkeyAi(playerNode, this.bulletAppState, assetManager, rootNode);
-        mymodel.addControl(ai);           
+        mymodel.addControl(ai); 
+        
+        
         rootNode.attachChild(monkeyTriadNode);
     }
     
@@ -615,7 +663,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         animateModel.setPlayerPosition(playerNode.getWorldTranslation());
         Vector3f playerCoords = playerNode.getWorldTranslation();
         
-        System.out.println("Player Coordinates: " + playerCoords);
+//        System.out.println("Player Coordinates: " + playerCoords);
 //        Vector3f camDirection = camNode.getLocalRotation().mult(Vector3f.UNIT_Z);
 //         Print the camera's direction to the console
 //        System.out.println("Camera Direction: " + camDirection);
@@ -843,6 +891,10 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         RigidBodyControl boxControl = new RigidBodyControl(0f);
         node.addControl(boxControl);
         bulletAppState.getPhysicsSpace().add(boxControl);
+        
+        //set shadow
+        
+
                 
         return node;
     }
@@ -922,6 +974,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         int carIndex = rand.nextInt(3) + 1; // [0, 2] + 1 -> [1, 3]
         
         Spatial myModel = assetManager.loadModel("Textures/Vehicles/car" + carIndex + ".j3o");
+        myModel.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+
         myModel.setLocalScale(Vector3f.UNIT_XYZ.mult(3));
         myModel.setMaterial(mat);
         myModel.rotate(0, (float)Math.toRadians(90), 0);
@@ -933,6 +987,8 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         spot.setSpotInnerAngle(15 * FastMath.DEG_TO_RAD);
         spot.setDirection(Vector3f.UNIT_Z);
         car.addLight(spot);
+        
+
 
         // move the car node and rotate it
         car.attachChild(myModel);
@@ -946,6 +1002,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         car.addControl(coinControl);
         bulletAppState.getPhysicsSpace().add(coinControl);
         
+
         return car;
     }
     
@@ -973,23 +1030,25 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         }
         // Optionally apply color if the model supports it (e.g., via material)
         if (building instanceof Geometry geom) {
-            Material mat = geom.getMaterial();
+            Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
             //mat.setColor("Color", color); // Ensure the material uses a color property
             geom.setMaterial(mat);
         } else {
             for (Spatial child : buildingNode.getChildren()) {
                 if (child instanceof Geometry geom) {
-                    Material mat = geom.getMaterial();
+                    Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
                     //mat.setColor("Color", color);
                     geom.setMaterial(mat);
                 }
             }
         }
+       
         RigidBodyControl buildingControl = new RigidBodyControl(0f);
         buildingNode.addControl(buildingControl);
         this.bulletAppState.getPhysicsSpace().add(buildingControl);
         
-        
+        buildingNode.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+
         
         return buildingNode;
     }
@@ -1011,6 +1070,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         coin.addControl(coinControl);
         this.bulletAppState.getPhysicsSpace().add(coinControl);
         
+
         return coin;
     }
     
