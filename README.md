@@ -115,7 +115,7 @@ When the player takes damage, the screen briefly flashes red to indicate the hit
 ## Sound
 Though we did not get around to fully fleshing our game out with sound at this point, we incorporated some aspects by adding ambient sound and by giving a collect sound when the player picks up a coin. We also added sound for when player takes damage, and will implement sounds for player movement and localized fire burning.
 
-## Member Contributions
+## Member Contributions & Credits
 
 Liam\
 Designed and coded the particles, skybox, fog, and hurtbox mechanics.
@@ -136,7 +136,7 @@ Collaborative Contributions\
 All members worked on acquiring the resources for sounds, sprites, generating ideas for what to implement, and debugging the code. All members helped with the logic implementations such as the player's health, win/lose game scenarios, and updated the README at different deliverables.
 
 Acknowledgment\
-We utilized assets and guidance from the jMonkey Beginner’s Guide, 3D Space Skybox Generator, and other online sources.
+We utilized assets and guidance from the jMonkey Beginner’s Guide, 3D Space Skybox Generator (https://tools.wwwtyro.net/space-3d/index.html), sketchfab (https://sketchfab.com/feed), and pixabay (https://pixabay.com/).
 
 ### Final Deliverable
 In the final days of development, we focused on enhancing the playability of the game. While previous iterations added new features, there wasn’t yet a central level or clear objective for players to focus on. To address this, we created a basic city block level, populated it with enemy monkeys, and placed 10 coins throughout the environment to give players a concrete goal. Additionally, we refined the start menu and clarified the possible game end states, while also improving the "juiciness" factors mentioned earlier. With that, we are proud to present ... **Business Monkey**!
