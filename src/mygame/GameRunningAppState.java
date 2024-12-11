@@ -393,6 +393,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
         camNode.setControlDir(CameraControl.ControlDirection.SpatialToCamera);
         camNode.setLocalTranslation(new Vector3f(0, 4f, 0)); // Set camera height relative to player
         playerNode.attachChild(camNode);
+        camNode.getCamera().setFrustumNear(0.4f); // changes FOV (and makes gun not clip into camera)
         
         // gun model
         playerGun = assetManager.loadModel("Textures/Gun/m4.j3o");
@@ -580,6 +581,10 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
             PlayerPhysControl.coinsCollected = 0;
             endGame(true);        
         }
+        
+        // animate gun. Plug into desmos to see nature of function (note: shootTimer is .2 -> -inf after shot)
+        float gunScale = Math.max(.9f, 1f + shootTimer / 2f);
+        playerGun.setLocalScale(10, 10, gunScale * 10f);
     }
     
     // updates player location and rotation each frame
@@ -632,7 +637,7 @@ public class GameRunningAppState extends AbstractAppState implements ActionListe
     
     // attempt to shoot a car located at the center of the screen, damaging it.
     private void shoot() {
-        if (shootTimer > 0) return;        
+        if (shootTimer > 0) return;
         shootTimer = shootRate; //taking shot so reset shooting cooldown
         
         CollisionResults results = new CollisionResults();        
