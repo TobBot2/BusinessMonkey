@@ -146,7 +146,7 @@ In the final days of development, we focused on enhancing the playability of the
 
 
 ## Download
-Dowload the game [here](https://raw.githubusercontent.com/TobBot2/BusinessMonkey/dist.zip)
+Dowload the game [here](/dist.zip)
 
 
 ## Future Work
